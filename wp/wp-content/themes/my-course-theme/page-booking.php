@@ -136,9 +136,20 @@
 
                                             <label class="week-option <?php echo $class['status'] !== 'available' ? 'disabled' : ''; ?>">
 
-                                                <input type="radio"
+                                                <input
+                                                    type="radio"
+                                                    class="week-radio"
+
+                                                    data-time="<?php echo $time; ?>"
+                                                    data-day="<?php echo $day; ?>"
+                                                    data-subject="<?php echo $class['subject']; ?>"
+                                                    data-teacher="<?php echo $class['teacher']; ?>"
+                                                    data-week="<?php echo $week; ?>"
+
                                                     name="week-<?php echo $time.'-'.$day.'-'.$class['subject']; ?>"
-                                                    <?php echo $class['status'] !== 'available' ? 'disabled' : ''; ?>>
+
+                                                    <?php echo $class['status'] !== 'available' ? 'disabled' : ''; ?>
+                                                >
 
                                                 <span><?php echo $week; ?></span>
 

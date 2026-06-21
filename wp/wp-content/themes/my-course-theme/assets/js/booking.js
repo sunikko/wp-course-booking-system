@@ -1,45 +1,63 @@
 document.addEventListener("DOMContentLoaded", function () {
   let selected = [];
 
-  const cards = document.querySelectorAll(".class-card");
+  const radios = document.querySelectorAll(".week-radio");
   const panel = document.querySelector(".selected-list");
 
-  function getId(card) {
-    return `${card.dataset.time}-${card.dataset.day}-${card.dataset.subject}`;
-  }
+  const clearBtn = document.querySelector(".btn-secondary");
 
   function renderPanel() {
     panel.innerHTML = "";
 
+    if (selected.length === 0) {
+      panel.innerHTML = `
+                <div class="empty-state">
+                    No bookings selected
+                </div>
+            `;
+
+      return;
+    }
+
     selected.forEach((item) => {
       const div = document.createElement("div");
+
       div.className = "selected-item";
 
       div.innerHTML = `
-                <span>${item.subject} - ${item.teacher} (${item.time}, ${item.day})</span>
-                <button class="remove-btn" data-id="${item.id}">Remove</button>
+                <div>
+                    <strong>${item.subject}</strong> - ${item.teacher}
+                    <br>
+                    ${item.day} ${item.time}
+                    <br>
+                    Week: ${item.week}
+                </div>
             `;
 
       panel.appendChild(div);
     });
   }
 
-  function addItem(card) {
-    selected.push({
-      id: getId(card),
-      time: card.dataset.time,
-      day: card.dataset.day,
-      subject: card.dataset.subject,
-      teacher: card.dataset.teacher,
+  function addOrUpdateBooking(booking) {
+    selected = selected.filter((item) => {
+      return !(
+        item.subject === booking.subject &&
+        item.day === booking.day &&
+        item.time === booking.time
+      );
     });
-  }
 
-  function removeItem(card) {
-    const id = getId(card);
-    selected = selected.filter((i) => i.id !== id);
+    selected.push(booking);
+
+    renderPanel();
   }
 
   function submitBooking() {
+    if (selected.length === 0) {
+      alert("No bookings selected");
+      return;
+    }
+
     fetch("/wp-admin/admin-ajax.php", {
       method: "POST",
       headers: {
@@ -54,7 +72,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((data) => {
         console.log("SERVER RESPONSE:", data);
 
-        alert("Booking sent successfully!");
+        alert(data.data.message || "Booking submitted!");
       })
       .catch((err) => {
         console.error(err);
@@ -62,31 +80,33 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
-  cards.forEach((card) => {
-    if (
-      card.classList.contains("booked") ||
-      card.classList.contains("conflict")
-    ) {
-      return;
-    }
+  radios.forEach((radio) => {
+    radio.addEventListener("change", function () {
+      const booking = {
+        subject: this.dataset.subject,
+        teacher: this.dataset.teacher,
+        day: this.dataset.day,
+        time: this.dataset.time,
+        week: this.dataset.week,
+      };
 
-    card.addEventListener("click", function () {
-      const id = getId(this);
-      const exists = selected.find((i) => i.id === id);
-
-      if (exists) {
-        this.classList.remove("selected");
-        removeItem(this);
-      } else {
-        this.classList.add("selected");
-        addItem(this);
-      }
-
-      renderPanel();
+      addOrUpdateBooking(booking);
     });
+  });
+
+  clearBtn.addEventListener("click", function () {
+    selected = [];
+
+    radios.forEach((radio) => {
+      radio.checked = false;
+    });
+
+    renderPanel();
   });
 
   document
     .querySelector(".btn-primary")
     .addEventListener("click", submitBooking);
+
+  renderPanel();
 });
