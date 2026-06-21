@@ -226,6 +226,7 @@
                                                     data-subject="<?php echo $class['subject']; ?>"
                                                     data-teacher="<?php echo $class['teacher']; ?>"
                                                     data-week="<?php echo $week; ?>"
+                                                    data-course-id="<?php echo $class['course_id'] ?? 0; ?>"
 
                                                     name="week-<?php echo $time.'-'.$day.'-'.$class['subject']; ?>"
 

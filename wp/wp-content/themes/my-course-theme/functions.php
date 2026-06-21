@@ -1,4 +1,5 @@
 <?php
+ob_start();
 
 function my_theme_setup()
 {
@@ -72,30 +73,190 @@ add_action('wp_enqueue_scripts', 'my_theme_assets');
 add_action('wp_ajax_submit_booking', 'submit_booking');
 add_action('wp_ajax_nopriv_submit_booking', 'submit_booking');
 
+add_action('wp_ajax_submit_booking', 'submit_booking');
+add_action('wp_ajax_nopriv_submit_booking', 'submit_booking');
+
 function submit_booking() {
     if (!is_user_logged_in()) {
-        wp_send_json_error([
-            'message' => 'Login required'
-        ]);
-        return;
+        wp_send_json_error(['message' => 'Login required']);
     }
 
     $user_id = get_current_user_id();
-
-    $selected = isset($_POST['selected'])
-        ? json_decode(stripslashes($_POST['selected']), true)
-        : [];
+    $selected = isset($_POST['selected']) ? json_decode(stripslashes($_POST['selected']), true) : [];
 
     if (empty($selected)) {
-        wp_send_json_error([
-            'message' => 'No booking data received'
-        ]);
-        return;
+        wp_send_json_error(['message' => 'No bookings selected']);
     }
 
-    wp_send_json_success([
-        'message' => 'Booking received successfully',
-        'user_id' => $user_id,
-        'bookings' => $selected
+    $errors = [];
+    $success = [];
+
+    foreach ($selected as $item) {
+        $course_id = isset($item['course_id']) ? intval($item['course_id']) : 0;
+        $day   = sanitize_text_field($item['day']);
+        $time  = sanitize_text_field($item['time']);
+        $week  = sanitize_text_field($item['week']);
+        $subject = sanitize_text_field($item['subject']);
+        $teacher = sanitize_text_field($item['teacher']);
+
+        if (!$course_id) {
+            $errors[] = 'Course ID missing';
+            continue;
+        }
+
+        $capacity = intval(get_field('capacity', $course_id));
+        if ($capacity <= 0) {
+            $errors[] = "$subject - $teacher: No capacity left";
+            continue;
+        }
+
+        $existing = new WP_Query([
+            'post_type'      => 'booking',
+            'posts_per_page' => 1,
+            'meta_query'     => [
+                'relation' => 'AND',
+                ['key' => 'course_id', 'value' => $course_id],
+                ['key' => 'booking_day', 'value' => $day],
+                ['key' => 'booking_time', 'value' => $time],
+                ['key' => 'booking_week', 'value' => $week],
+                ['key' => 'user_id', 'value' => $user_id],
+            ],
+            'post_status' => 'publish',
+        ]);
+
+        if ($existing->have_posts()) {
+            $errors[] = "$subject - $teacher: Already booked this slot";
+            continue;
+        }
+
+        $booking_id = wp_insert_post([
+            'post_title'  => $subject . ' - ' . $teacher,
+            'post_type'   => 'booking',
+            'post_status' => 'publish',
+            'meta_input'  => [
+                'course_id'   => $course_id,
+                'booking_day' => $day,
+                'booking_time'=> $time,
+                'booking_week'=> $week,
+                'user_id'     => $user_id,
+                'status'      => 'confirmed',
+            ]
+        ]);
+
+        if (is_wp_error($booking_id)) {
+            $errors[] = "$subject - $teacher: Failed to save";
+            continue;
+        }
+
+        update_field('capacity', $capacity - 1, $course_id);
+
+        $success[] = "$subject - $teacher booked successfully!";
+    }
+
+    if (!empty($errors)) {
+        wp_send_json_error(['message' => implode(' ', $errors)]);
+    } else {
+        wp_send_json_success(['message' => 'All bookings saved!', 'booked' => $success]);
+    }
+}
+
+// Register Booking CPT
+function register_booking_post_type() {
+    register_post_type('booking', [
+        'labels' => [
+            'name'               => 'Bookings',
+            'singular_name'      => 'Booking',
+            'add_new'            => 'Add New Booking',
+            'add_new_item'       => 'Add New Booking',
+            'edit_item'          => 'Edit Booking',
+            'new_item'           => 'New Booking',
+            'view_item'          => 'View Booking',
+            'search_items'       => 'Search Bookings',
+            'not_found'          => 'No bookings found',
+            'not_found_in_trash' => 'No bookings found in Trash',
+        ],
+        'public'        => false,
+        'show_ui'       => true,
+        'show_in_menu'  => true,
+        'supports'      => ['title', 'custom-fields'],
+        'menu_icon'     => 'dashicons-calendar-alt',
+        'capability_type' => 'post',
     ]);
 }
+add_action('init', 'register_booking_post_type');
+
+
+
+
+
+// functions.php - Course는 시작일만 저장
+function generate_correct_demo_data() {
+    $now = current_time('timestamp');
+    $today_numeric = intval(date('w', $now));
+    $days_to_subtract = ($today_numeric === 0) ? 6 : ($today_numeric - 1);
+    $this_monday_ts = strtotime("-{$days_to_subtract} days", strtotime(date('Y-m-d 00:00:00', $now)));
+
+    $existing = new WP_Query([
+        'post_type' => 'course',
+        'posts_per_page' => -1,
+    ]);
+    while ($existing->have_posts()) {
+        $existing->the_post();
+        wp_delete_post(get_the_ID(), true);
+    }
+    wp_reset_postdata();
+
+    $subjects = [
+        'Science'     => ['teacher' => 'Dr. Kim', 'price' => 100, 'capacity' => 5],
+        'Math'        => ['teacher' => 'Prof. Lee', 'price' => 120, 'capacity' => 4],
+        'English'     => ['teacher' => 'Ms. Park', 'price' => 90, 'capacity' => 6],
+        'Art'         => ['teacher' => 'Mr. Jung', 'price' => 80, 'capacity' => 8],
+        'Music'       => ['teacher' => 'Ms. Choi', 'price' => 110, 'capacity' => 3],
+        'History'     => ['teacher' => 'Dr. Yoon', 'price' => 95, 'capacity' => 5],
+        'Programming' => ['teacher' => 'Mr. Kang', 'price' => 150, 'capacity' => 4],
+    ];
+    $subject_keys = array_keys($subjects);
+
+    $times = ['10:00', '11:00', '12:00', '14:00', '15:00', '16:00'];
+
+    $weeks_offsets = [0, 7];
+    $total_created = 0;
+
+    foreach ($weeks_offsets as $week_offset) {
+        for ($day_offset = 0; $day_offset <= 5; $day_offset++) {
+
+            $target_day_ts = strtotime("+ " . ($week_offset + $day_offset) . " days", $this_monday_ts);
+            $date_str = date('Y-m-d', $target_day_ts);
+
+            foreach ($times as $time) {
+                if (rand(1, 10) > 4) {
+
+                    $classes_in_this_slot = rand(1, 2);
+
+                    for ($i = 0; $i < $classes_in_this_slot; $i++) {
+                        $random_subject = $subject_keys[array_rand($subject_keys)];
+                        $info = $subjects[$random_subject];
+
+                        $post_id = wp_insert_post([
+                            'post_title'  => $random_subject . ' – ' . $info['teacher'],
+                            'post_type'   => 'course',
+                            'post_status' => 'publish'
+                        ]);
+
+                        if ($post_id) {
+                            update_field('schedule', $date_str . ' ' . $time . ':00', $post_id);
+                            update_field('capacity', $info['capacity'], $post_id);
+                            update_field('price', $info['price'], $post_id);
+
+                            $total_created++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    echo "✅  {$total_created} courses created";
+}
+
+//generate_correct_demo_data();

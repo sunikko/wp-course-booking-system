@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    fetch("/wp-admin/admin-ajax.php", {
+    fetch(wpData.ajaxUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -121,6 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
   radios.forEach((radio) => {
     radio.addEventListener("change", function () {
       const booking = {
+        course_id: this.dataset.courseId || 0,
         subject: this.dataset.subject,
         teacher: this.dataset.teacher,
         day: this.dataset.day,
