@@ -2,86 +2,222 @@
 
 <div class="container">
 
-    <h1>Class Booking Timetable</h1>
+    <h1 class="page-title">Class Booking Timetable</h1>
 
+    <!-- ===================== -->
+    <!-- SELECTED PANEL -->
+    <!-- ===================== -->
     <div class="selection-panel">
-        <h2>Selected Bookings:</h2>
 
-        <div class="selected-item">
-            <span>Science (Jane's Class) - 09/03/2026</span>
-            <button class="remove-btn">Remove</button>
-        </div>
+        <h2>Selected Bookings</h2>
+
+        <div class="selected-list"></div>
 
         <div class="action-buttons">
             <button class="btn btn-primary">Book Selected</button>
-            <button class="btn btn-secondary">Cancel All</button>
+            <button class="btn btn-secondary">Clear</button>
         </div>
+
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Time</th>
-                <th>Mon</th>
-                <th>Tue</th>
-                <th>Wed</th>
-                <th>Thu</th>
-                <th>Fri</th>
-                <th>Sat</th>
-            </tr>
-        </thead>
+    <?php
+    $days = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+    $times = ['10:00','11:00','12:00','14:00'];
 
-        <tbody>
+    // =========================
+    // DUMMY DATA (STATE INCLUDED)
+    // =========================
+    $data = [
+        '10:00' => [
+            'Mon' => [
+                [
+                    'subject' => 'Science',
+                    'teacher' => 'Jane',
+                    'weeks' => ['09/03','16/03'],
+                    'status' => 'booked'
+                ],
+                [
+                    'subject' => 'Math',
+                    'teacher' => 'Tom',
+                    'weeks' => ['09/03','16/03'],
+                    'status' => 'conflict'
+                ]
+            ],
+            'Tue' => [
+                [
+                    'subject' => 'English',
+                    'teacher' => 'Chris',
+                    'weeks' => ['10/03','17/03'],
+                    'status' => 'available'
+                ]
+            ]
+        ],
+        '11:00' => [
+            'Mon' => [
+                [
+                    'subject' => 'Math',
+                    'teacher' => 'Jake',
+                    'weeks' => ['09/03','16/03'],
+                    'status' => 'available'
+                ]
+            ],
+            'Wed' => [
+                [
+                    'subject' => 'Science',
+                    'teacher' => 'Anna',
+                    'weeks' => ['11/03','18/03'],
+                    'status' => 'available'
+                ],
+                [
+                    'subject' => 'Math',
+                    'teacher' => 'Tom',
+                    'weeks' => ['11/03','18/03'],
+                    'status' => 'conflict'
+                ]
+            ]
+        ]
+    ];
+    ?>
 
-        <?php
-        $times = ['10:00','11:00','14:00','16:00'];
-        $days = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+    <!-- ===================== -->
+    <!-- CALENDAR -->
+    <!-- ===================== -->
+    <div class="calendar">
 
-        foreach ($times as $time): ?>
-            <tr>
+        <!-- HEADER -->
+        <div class="calendar-header">
+            <div class="time-col">Time</div>
 
-                <td>
-                    <div class="time-label"><?php echo $time; ?></div>
-                </td>
+            <?php foreach ($days as $day): ?>
+                <div class="day-header"><?php echo $day; ?></div>
+            <?php endforeach; ?>
+        </div>
 
+        <!-- BODY -->
+        <?php foreach ($times as $time): ?>
+
+            <div class="time-row">
+
+                <!-- TIME -->
+                <div class="time-label">
+                    <?php echo $time; ?>
+                </div>
+
+                <!-- DAYS -->
                 <?php foreach ($days as $day): ?>
 
-                    <?php $type = rand(0,2); ?>
+                    <div class="day-cell">
 
-                    <td>
+                        <?php if (isset($data[$time][$day])): ?>
 
-                        <?php if ($type == 0): ?>
+                            <?php foreach ($data[$time][$day] as $class): ?>
 
-                            <div class="no-class">No class</div>
+                                <div class="class-card <?php echo $class['status']; ?>">
 
-                        <?php elseif ($type == 1): ?>
+                                    <!-- TITLE -->
+                                    <div class="class-header">
+                                        <?php echo $class['subject']; ?>
+                                    </div>
 
-                            <div class="class-card">
-                                <div class="class-header">Science</div>
-                                <div class="class-teacher">Jane's Class</div>
-                                <div class="status-message booked">BOOKED</div>
-                            </div>
+                                    <div class="class-teacher">
+                                        <?php echo $class['teacher']; ?>
+                                    </div>
+
+                                    <!-- STATUS -->
+                                    <?php if ($class['status'] === 'booked'): ?>
+                                        <div class="badge booked">BOOKED</div>
+                                    <?php elseif ($class['status'] === 'conflict'): ?>
+                                        <div class="badge conflict">CONFLICT</div>
+                                    <?php endif; ?>
+
+                                    <!-- WEEKS -->
+                                    <div class="week-options">
+
+                                        <?php foreach ($class['weeks'] as $week): ?>
+
+                                            <label class="week-option <?php echo $class['status'] !== 'available' ? 'disabled' : ''; ?>">
+
+                                                <input type="radio"
+                                                    name="<?php echo $time.'-'.$day.'-'.$class['subject']; ?>"
+                                                    <?php echo $class['status'] !== 'available' ? 'disabled' : ''; ?>>
+
+                                                <span><?php echo $week; ?></span>
+
+                                            </label>
+
+                                        <?php endforeach; ?>
+
+                                    </div>
+
+                                </div>
+
+                            <?php endforeach; ?>
 
                         <?php else: ?>
 
-                            <div class="class-card">
-                                <div class="class-header">Math</div>
-                                <div class="class-teacher">Tom's Class</div>
-                                <div class="status-message conflict">CONFLICT</div>
-                            </div>
+                            <div class="no-class">No class</div>
 
                         <?php endif; ?>
 
-                    </td>
+                    </div>
 
                 <?php endforeach; ?>
 
-            </tr>
+            </div>
+
         <?php endforeach; ?>
 
-        </tbody>
-    </table>
+    </div>
 
 </div>
+
+<!-- ===================== -->
+<!-- LIVE UI SCRIPT -->
+<!-- ===================== -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    const cards = document.querySelectorAll('.class-card');
+    const panel = document.querySelector('.selected-list');
+
+    function updatePanel() {
+
+        panel.innerHTML = '';
+
+        document.querySelectorAll('.class-card.selected').forEach(card => {
+
+            const title = card.querySelector('.class-header').innerText;
+            const teacher = card.querySelector('.class-teacher').innerText;
+
+            const div = document.createElement('div');
+            div.className = 'selected-item';
+
+            div.innerHTML = `
+                <span>${title} - ${teacher}</span>
+                <button class="remove-btn">Remove</button>
+            `;
+
+            panel.appendChild(div);
+
+        });
+    }
+
+    cards.forEach(card => {
+
+        if (card.classList.contains('booked') || card.classList.contains('conflict')) {
+            return;
+        }
+
+        card.addEventListener('click', function() {
+
+            this.classList.toggle('selected');
+            updatePanel();
+
+        });
+
+    });
+
+});
+</script>
 
 <?php get_footer(); ?>

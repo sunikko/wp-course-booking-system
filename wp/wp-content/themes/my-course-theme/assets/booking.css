@@ -1,42 +1,42 @@
 body {
-    font-family: "Inter", sans-serif;
-    background-color: #f8f9fa;
-    margin: 20px;
+    font-family: Inter, sans-serif;
+    background: #f8f9fa;
+    margin: 0;
     color: #333;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
+    padding: 20px;
 }
 
-h1 {
+.page-title {
     font-size: 24px;
     margin-bottom: 20px;
 }
 
-/* selection panel */
+/* PANEL */
 .selection-panel {
-    background-color: #f1f3f5;
+    background: #f1f3f5;
     border: 1px solid #e0e0e0;
-    border-radius: 8px;
     padding: 15px;
+    border-radius: 8px;
     margin-bottom: 20px;
 }
 
 .selected-item {
-    display: flex;
-    justify-content: space-between;
-    background: #fff;
+    background: white;
     padding: 8px 12px;
     margin-bottom: 8px;
-    border-radius: 4px;
-    border: 1px solid #ddd;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
 }
 
 .remove-btn {
-    background: none;
     border: none;
+    background: transparent;
     color: red;
     cursor: pointer;
 }
@@ -44,12 +44,11 @@ h1 {
 .action-buttons {
     display: flex;
     gap: 10px;
-    margin-top: 10px;
 }
 
 .btn {
-    padding: 8px 16px;
-    border-radius: 4px;
+    padding: 8px 14px;
+    border-radius: 6px;
     border: none;
     cursor: pointer;
 }
@@ -60,107 +59,61 @@ h1 {
 }
 
 .btn-secondary {
-    background: #fff;
+    background: white;
     border: 1px solid #ccc;
 }
 
-/* table */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
+/* CALENDAR */
+.calendar {
+    display: flex;
+    flex-direction: column;
 }
 
-th,
-td {
+/* HEADER */
+.calendar-header {
+    display: grid;
+    grid-template-columns: 100px repeat(6, 1fr);
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.time-col {
     padding: 10px;
-    border-bottom: 1px solid #eee;
-    vertical-align: top;
 }
 
-th {
-    background: #f8f9fa;
-    font-size: 14px;
-    color: #666;
+/* ROW */
+.time-row {
+    display: grid;
+    grid-template-columns: 100px repeat(6, 1fr);
+    border-bottom: 1px solid #eee;
 }
 
 .time-label {
-    font-weight: bold;
-    color: #666;
-}
-
-.class-card {
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 8px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.class-card:hover {
-    border-color: #007bff;
-    transform: scale(1.02);
-}
-
-.class-header {
-    font-weight: bold;
-}
-
-.class-teacher {
-    font-size: 13px;
-    color: #666;
-}
-
-.date-option {
-    font-size: 13px;
-}
-
-.status-message {
-    font-size: 12px;
-    margin-top: 5px;
-}
-
-.booked {
-    color: #28a745;
-    font-weight: bold;
-}
-
-.conflict {
-    color: #dc3545;
-    font-weight: bold;
-}
-
-.same-subject {
-    color: #ff8800;
-    font-weight: bold;
-}
-
-.no-class {
-    color: #aaa;
-    text-align: center;
-    padding: 20px;
-}
-
-.slot {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.class-card {
-    border: 1px solid #ddd;
-    border-radius: 8px;
     padding: 10px;
-    background: #fff;
+    font-weight: bold;
+    color: #666;
+}
+
+/* CELL */
+.day-cell {
+    padding: 8px;
+    min-height: 140px;
+    border-left: 1px solid #eee;
+}
+
+/* CARD */
+.class-card {
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 8px;
     transition: 0.2s;
 }
 
 .class-card:hover {
     border-color: #007bff;
-    transform: scale(1.02);
+    transform: translateY(-2px);
 }
 
 .class-header {
@@ -171,13 +124,14 @@ th {
 .class-teacher {
     font-size: 12px;
     color: #666;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
 }
 
+/* WEEK SELECT */
 .week-options {
     display: flex;
-    gap: 8px;
-    margin-top: 5px;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .week-option {
@@ -189,5 +143,52 @@ th {
 }
 
 .week-option input {
-    margin-right: 4px;
+    margin-right: 6px;
+}
+
+/* EMPTY */
+.no-class {
+    color: #aaa;
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+}
+
+.badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+    display: inline-block;
+}
+
+.badge.booked {
+    background: #28a745;
+    color: white;
+}
+
+.badge.conflict {
+    background: #dc3545;
+    color: white;
+}
+
+/* disabled state */
+.class-card.booked {
+    opacity: 0.6;
+    border: 1px solid #28a745;
+}
+
+.class-card.conflict {
+    opacity: 0.5;
+    border: 1px solid #dc3545;
+}
+
+.week-option.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.class-card.selected {
+    border: 2px solid #007bff;
+    background: #f0f8ff;
 }
