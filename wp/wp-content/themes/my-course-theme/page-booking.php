@@ -24,78 +24,40 @@
 
 <?php get_header(); ?>
 
+<!-- ===================== -->
+<!-- AUTH MODALS  -->
+<!-- ===================== -->
+<div id="auth-overlay" class="auth-overlay hidden"></div>
+
+<div id="login-modal" class="auth-modal hidden">
+    <div class="auth-box">
+        <h2>Login</h2>
+        <?php wp_login_form([
+            'label_username' => 'Username',
+            'label_password' => 'Password',
+            'label_log_in' => 'Login',
+            'remember' => true,
+        ]); ?>
+        <p>No account? <a href="<?php echo wp_registration_url(); ?>">Sign up</a></p>
+        <button class="close-modal" data-close="login">Close</button>
+    </div>
+</div>
+
 <div class="container">
 
 <?php if (!is_user_logged_in()): ?>
-
- <div class="auth-login-box">
-
-        <h3>🔒 Login</h3>
-
-        <?php wp_login_form([
-            'label_username' => 'Username',
-            'label_password' => 'Password',
-            'label_remember' => 'Remember Me',
-            'label_log_in' => 'Login'
-        ]); ?>
-
-        <p class="auth-register">
-            No account?
-            <a href="<?php echo wp_registration_url(); ?>" target="_blank">
-                Sign up
-            </a>
-        </p>
-
+    <div class="auth-login-box">
+        <h3>🔒 Login Required</h3>
+        <p><a href="#" class="login-btn">Login</a></p>
+        <p>No account? <a href="<?php echo wp_registration_url(); ?>" target="_blank">Sign up</a></p>
     </div>
-
-
-
-</div>
-
-<?php get_footer(); ?>
-<?php return; ?>
-
+    </div>
+    <?php get_footer(); ?>
+    <?php return; ?>
 <?php endif; ?>
 
+
 <div class="container">
-
-
-<!-- ===================== -->
-<!-- AUTH MODALS -->
-<!-- ===================== -->
-
-<div id="auth-overlay" class="auth-overlay hidden"></div>
-
-<!-- LOGIN MODAL -->
-<div id="login-modal" class="auth-modal hidden">
-
-    <div class="auth-box">
-
-        <h2>Login</h2>
-
-        <?php wp_login_form([
-            'label_username' => 'Username',
-            'label_password' => 'Password',
-            'label_log_in' => 'Login'
-        ]); ?>
-
-        <p>
-            No account?
-            <a href="<?php echo wp_registration_url(); ?>">
-                Sign up
-            </a>
-        </p>
-
-        <button class="close-modal" data-close="login">Close</button>
-
-    </div>
-
-</div>
-
-
-<a href="#" class="login-btn">
-    Login
-</a>
 
     <h1 class="page-title">Class Booking Timetable</h1>
 

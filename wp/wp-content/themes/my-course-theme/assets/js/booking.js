@@ -99,9 +99,12 @@ document.addEventListener("DOMContentLoaded", function () {
     btn.addEventListener("click", closeModal);
   });
 
-  document
-    .querySelector(".login-btn")
-    .addEventListener("click", openLoginModal);
+  document.querySelectorAll(".login-btn").forEach((btn) => {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      openLoginModal();
+    });
+  });
   overlay.addEventListener("click", closeModal);
 
   document.querySelectorAll(".close-modal").forEach((btn) => {
