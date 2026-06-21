@@ -97,6 +97,56 @@
         'post_status' => 'publish'
     ]);
 
+    $current_user_id = get_current_user_id();
+    $my_all_bookings = [];
+    $my_booked_course_ids = [];
+
+    $all_booked_query = new WP_Query([
+        'post_type'      => 'booking',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'meta_query'     => [
+            ['key' => 'user_id', 'value' => (string)$current_user_id, 'compare' => '=']
+        ]
+    ]);
+
+    if ($all_booked_query->have_posts()) {
+        while ($all_booked_query->have_posts()) {
+            $all_booked_query->the_post();
+            $b_post_id = get_the_ID();
+
+            $b_course_id = get_field('course_id', $b_post_id);
+            $b_day       = get_field('booking_day', $b_post_id);
+            $b_time      = get_field('booking_time', $b_post_id);
+            $b_week      = get_field('booking_week', $b_post_id);
+
+            $final_course_id = 0;
+            if (is_object($b_course_id) && isset($b_course_id->ID)) {
+                $final_course_id = intval($b_course_id->ID);
+            } elseif (is_array($b_course_id) && isset($b_course_id['ID'])) {
+                $final_course_id = intval($b_course_id['ID']);
+            } elseif (is_array($b_course_id) && !empty($b_course_id)) {
+                $final_course_id = intval($b_course_id[0]);
+            } else {
+                $final_course_id = intval($b_course_id);
+            }
+
+            if ($final_course_id > 0) {
+                $my_booked_course_ids[] = $final_course_id;
+            }
+
+            if (!empty($b_day) && !empty($b_time)) {
+                $key = trim($b_day) . '-' . trim($b_time);
+                $my_all_bookings[$key] = [
+                    'course_id' => $final_course_id,
+                    'week'      => $b_week ? $b_week : ''
+                ];
+            }
+        }
+        wp_reset_postdata();
+    }
+
+    $my_booked_course_ids = array_unique($my_booked_course_ids);
     $data = [];
     $detected_times = [];
 
@@ -110,8 +160,8 @@
         $timestamp = strtotime($schedule_raw);
         if (!$timestamp) continue;
 
-        $day = date('D', $timestamp);    // 'Mon', 'Tue' 등
-        $time = date('H:i', $timestamp);  // '14:00', '16:00' 등
+        $day  = date('D', $timestamp);
+        $time = date('H:i', $timestamp);
 
         $c_today = intval(date('w', $timestamp));
         $c_sub = ($c_today === 0) ? 6 : ($c_today - 1);
@@ -125,29 +175,38 @@
             $detected_times[] = $time;
         }
 
-        $capacity = intval(get_field('capacity', $course_id));
+        $slot_key = trim($day) . '-' . trim($time);
+        $status = 'available';
+        $booked_date_str = '';
 
-        $booked_query = new WP_Query([
-            'post_type' => 'booking',
-            'meta_query' => [
-                ['key' => 'course_id', 'value' => $course_id]
-            ],
-            'post_status' => 'publish',
-            'posts_per_page' => -1
-        ]);
-        $booked_count = $booked_query->post_count;
-        $available = $capacity - $booked_count;
-        $status = ($available > 0) ? 'available' : 'booked';
+        /* Check conflict status */
+        if (!empty($my_all_bookings) && isset($my_all_bookings[$slot_key])) {
+            $booked_info = $my_all_bookings[$slot_key];
+
+            if (intval($booked_info['course_id']) === intval($course_id)) {
+                $status = 'booked';
+                $booked_date_str = "Booked (" . $booked_info['week'] . ")";
+            } else {
+                $status = 'disabled';
+                $booked_date_str = "Time Conflict";
+            }
+        } elseif (in_array((int)$course_id, array_map('intval', $my_booked_course_ids))) {
+            $status = 'course-conflict';
+            $booked_date_str = "Already Booked This Course";
+        }
+
+        $capacity = intval(get_field('capacity', $course_id));
+        $price = get_field('price', $course_id);
 
         $data[$time][$day][] = [
-            'course_id' => $course_id,
-            'subject' => get_the_title(),
-            'teacher' => 'Instructor',
-            'weeks' => $weeks_to_show,
-            'status' => $status,
-            'capacity' => $capacity,
-            'available' => $available,
-            'price' => get_field('price', $course_id),
+            'course_id'       => $course_id,
+            'subject'         => get_the_title(),
+            'teacher'         => 'Instructor',
+            'weeks'           => $weeks_to_show,
+            'status'          => $status,
+            'capacity'        => $capacity,
+            'price'           => $price,
+            'booked_date_str' => $booked_date_str,
         ];
     }
     wp_reset_postdata();
@@ -186,7 +245,16 @@
                         <?php if (isset($data[$time][$day])): ?>
 
                             <?php foreach ($data[$time][$day] as $class): ?>
-
+                                <?php
+                                    $card_style = '';
+                                    if ($class['status'] === 'booked') {
+                                        $card_style = 'border: 2px solid #28a745; background-color: #f4fbf6;';
+                                    } elseif ($class['status'] === 'course-conflict') {
+                                        $card_style = 'border: 2px solid #ff9800; background-color: #fff9e6; opacity: 0.7;';
+                                    } elseif ($class['status'] === 'disabled') {
+                                        $card_style = 'border: 1px solid #eeeeee; background-color: #eeeeee; opacity: 0.5;';
+                                    }
+                                ?>
                                 <div class="class-card <?php echo $class['status']; ?>"
 
                                     data-time="<?php echo $time; ?>"
@@ -195,6 +263,8 @@
                                     data-teacher="<?php echo $class['teacher']; ?>"
                                     data-course-id="<?php echo $class['course_id'] ?? 0; ?>"
                                     data-weeks="<?php echo htmlspecialchars(json_encode($class['weeks'])); ?>"
+
+                                    style="<?php echo $card_style; ?>"
                                 >
 
                                     <div class="class-header">
@@ -230,7 +300,12 @@
 
                                                     name="week-<?php echo $time.'-'.$day.'-'.$class['subject']; ?>"
 
-                                                    <?php echo $class['status'] !== 'available' ? 'disabled' : ''; ?>
+                                                    <?php if ($class['status'] === 'booked'): ?>
+                                                        checked
+                                                        style="pointer-events: none; cursor: not-allowed; accent-color: #28a745;"
+                                                    <?php elseif ($class['status'] === 'disabled'): ?>
+                                                        disabled
+                                                    <?php endif; ?>
                                                 >
 
                                                 <span><?php echo $week; ?></span>

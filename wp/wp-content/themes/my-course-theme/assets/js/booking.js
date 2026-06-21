@@ -58,6 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
+    const submitBtn = document.getElementById("submit-bookings");
     fetch(wpData.ajaxUrl, {
       method: "POST",
       headers: {
@@ -72,7 +73,18 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((data) => {
         console.log("SERVER RESPONSE:", data);
 
-        alert(data.data.message || "Booking submitted!");
+        if (data.success) {
+          if (submitBtn) {
+            submitBtn.innerText = "✓ Booking Successful!";
+            submitBtn.style.backgroundColor = "#28a745";
+            submitBtn.disabled = true;
+          }
+
+          alert("Booking successfully saved!\n" + data.data.booked.join("\n"));
+          location.reload();
+        } else {
+          alert("Error: " + (data.data.message || "Unknown error"));
+        }
       })
       .catch((err) => {
         console.error(err);

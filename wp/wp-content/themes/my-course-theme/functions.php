@@ -133,20 +133,19 @@ function submit_booking() {
             'post_title'  => $subject . ' - ' . $teacher,
             'post_type'   => 'booking',
             'post_status' => 'publish',
-            'meta_input'  => [
-                'course_id'   => $course_id,
-                'booking_day' => $day,
-                'booking_time'=> $time,
-                'booking_week'=> $week,
-                'user_id'     => $user_id,
-                'status'      => 'confirmed',
-            ]
         ]);
 
-        if (is_wp_error($booking_id)) {
+        if (is_wp_error($booking_id) || !$booking_id) {
             $errors[] = "$subject - $teacher: Failed to save";
             continue;
         }
+
+        update_field('course_id', $course_id, $booking_id);
+        update_field('booking_day', $day, $booking_id);
+        update_field('booking_time', $time, $booking_id);
+        update_field('booking_week', $week, $booking_id);
+        update_field('user_id', $user_id, $booking_id);
+        update_field('status', 'confirmed', $booking_id);
 
         update_field('capacity', $capacity - 1, $course_id);
 
