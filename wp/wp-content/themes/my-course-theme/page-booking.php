@@ -59,6 +59,44 @@
 
 <div class="container">
 
+
+<!-- ===================== -->
+<!-- AUTH MODALS -->
+<!-- ===================== -->
+
+<div id="auth-overlay" class="auth-overlay hidden"></div>
+
+<!-- LOGIN MODAL -->
+<div id="login-modal" class="auth-modal hidden">
+
+    <div class="auth-box">
+
+        <h2>Login</h2>
+
+        <?php wp_login_form([
+            'label_username' => 'Username',
+            'label_password' => 'Password',
+            'label_log_in' => 'Login'
+        ]); ?>
+
+        <p>
+            No account?
+            <a href="<?php echo wp_registration_url(); ?>">
+                Sign up
+            </a>
+        </p>
+
+        <button class="close-modal" data-close="login">Close</button>
+
+    </div>
+
+</div>
+
+
+<a href="#" class="login-btn">
+    Login
+</a>
+
     <h1 class="page-title">Class Booking Timetable</h1>
 
     <!-- ===================== -->

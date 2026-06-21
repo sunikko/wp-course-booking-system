@@ -44,30 +44,30 @@ add_action('init', function () {
     }
 });
 
-
 function my_theme_assets() {
+
     wp_enqueue_style(
         'booking-style',
         get_template_directory_uri() . '/assets/css/booking.css',
         array(),
         '1.0'
     );
+
+    wp_enqueue_script(
+            'booking-js',
+            get_template_directory_uri() . '/assets/js/booking.js',
+            array(),
+            '1.0',
+            true // footer load (IMPORTANT)
+        );
+
+    wp_localize_script('booking-js', 'wpData', array(
+        'isLoggedIn' => is_user_logged_in(),
+        'ajaxUrl' => admin_url('admin-ajax.php')
+    ));
 }
 
 add_action('wp_enqueue_scripts', 'my_theme_assets');
-
-
-add_action('wp_enqueue_scripts', function () {
-
-    wp_enqueue_script(
-        'booking-js',
-        get_template_directory_uri() . '/assets/js/booking.js',
-        array(),
-        '1.0',
-        true // footer load (IMPORTANT)
-    );
-
-});
 
 add_action('wp_ajax_submit_booking', 'submit_booking');
 add_action('wp_ajax_nopriv_submit_booking', 'submit_booking');

@@ -80,6 +80,41 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
+  const loginModal = document.getElementById("login-modal");
+  const overlay = document.getElementById("auth-overlay");
+
+  function openLoginModal() {
+    loginModal.classList.remove("hidden");
+    overlay.classList.remove("hidden");
+  }
+
+  function closeModal() {
+    loginModal.classList.add("hidden");
+    overlay.classList.add("hidden");
+  }
+
+  overlay.addEventListener("click", closeModal);
+
+  document.querySelectorAll(".close-modal").forEach((btn) => {
+    btn.addEventListener("click", closeModal);
+  });
+
+  document
+    .querySelector(".login-btn")
+    .addEventListener("click", openLoginModal);
+  overlay.addEventListener("click", closeModal);
+
+  document.querySelectorAll(".close-modal").forEach((btn) => {
+    btn.addEventListener("click", closeModal);
+  });
+
+  const isLoggedIn = wpData.isLoggedIn;
+
+  console.log("LOGIN STATUS:", isLoggedIn);
+
+  if (!isLoggedIn) {
+    openLoginModal();
+  }
   radios.forEach((radio) => {
     radio.addEventListener("change", function () {
       const booking = {
