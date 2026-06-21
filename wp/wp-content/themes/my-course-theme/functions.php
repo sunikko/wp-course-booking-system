@@ -68,3 +68,16 @@ add_action('wp_enqueue_scripts', function () {
     );
 
 });
+
+add_action('wp_ajax_submit_booking', 'submit_booking');
+add_action('wp_ajax_nopriv_submit_booking', 'submit_booking');
+
+function submit_booking() {
+
+    $data = $_POST['selected'] ?? [];
+
+    wp_send_json_success([
+        'message' => 'Booking received successfully',
+        'received_data' => $data
+    ]);
+}

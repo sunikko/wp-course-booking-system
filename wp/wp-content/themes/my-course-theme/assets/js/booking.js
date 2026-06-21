@@ -39,6 +39,29 @@ document.addEventListener("DOMContentLoaded", function () {
     selected = selected.filter((i) => i.id !== id);
   }
 
+  function submitBooking() {
+    fetch("/wp-admin/admin-ajax.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        action: "submit_booking",
+        selected: JSON.stringify(selected),
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("SERVER RESPONSE:", data);
+
+        alert("Booking sent successfully!");
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Error submitting booking");
+      });
+  }
+
   cards.forEach((card) => {
     if (
       card.classList.contains("booked") ||
@@ -62,4 +85,8 @@ document.addEventListener("DOMContentLoaded", function () {
       renderPanel();
     });
   });
+
+  document
+    .querySelector(".btn-primary")
+    .addEventListener("click", submitBooking);
 });
