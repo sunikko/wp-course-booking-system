@@ -24,9 +24,6 @@
     $days = ['Mon','Tue','Wed','Thu','Fri','Sat'];
     $times = ['10:00','11:00','12:00','14:00'];
 
-    // =========================
-    // DUMMY DATA (STATE INCLUDED)
-    // =========================
     $data = [
         '10:00' => [
             'Mon' => [
@@ -98,12 +95,10 @@
 
             <div class="time-row">
 
-                <!-- TIME -->
                 <div class="time-label">
                     <?php echo $time; ?>
                 </div>
 
-                <!-- DAYS -->
                 <?php foreach ($days as $day): ?>
 
                     <div class="day-cell">
@@ -112,9 +107,15 @@
 
                             <?php foreach ($data[$time][$day] as $class): ?>
 
-                                <div class="class-card <?php echo $class['status']; ?>">
+                                <div class="class-card <?php echo $class['status']; ?>"
 
-                                    <!-- TITLE -->
+                                    data-time="<?php echo $time; ?>"
+                                    data-day="<?php echo $day; ?>"
+                                    data-subject="<?php echo $class['subject']; ?>"
+                                    data-teacher="<?php echo $class['teacher']; ?>"
+                                    data-weeks="<?php echo htmlspecialchars(json_encode($class['weeks'])); ?>"
+                                >
+
                                     <div class="class-header">
                                         <?php echo $class['subject']; ?>
                                     </div>
@@ -123,14 +124,12 @@
                                         <?php echo $class['teacher']; ?>
                                     </div>
 
-                                    <!-- STATUS -->
                                     <?php if ($class['status'] === 'booked'): ?>
                                         <div class="badge booked">BOOKED</div>
                                     <?php elseif ($class['status'] === 'conflict'): ?>
                                         <div class="badge conflict">CONFLICT</div>
                                     <?php endif; ?>
 
-                                    <!-- WEEKS -->
                                     <div class="week-options">
 
                                         <?php foreach ($class['weeks'] as $week): ?>
@@ -138,7 +137,7 @@
                                             <label class="week-option <?php echo $class['status'] !== 'available' ? 'disabled' : ''; ?>">
 
                                                 <input type="radio"
-                                                    name="<?php echo $time.'-'.$day.'-'.$class['subject']; ?>"
+                                                    name="week-<?php echo $time.'-'.$day.'-'.$class['subject']; ?>"
                                                     <?php echo $class['status'] !== 'available' ? 'disabled' : ''; ?>>
 
                                                 <span><?php echo $week; ?></span>
@@ -172,34 +171,53 @@
 </div>
 
 <!-- ===================== -->
-<!-- LIVE UI SCRIPT -->
+<!-- JS (STATE-BASED SYSTEM) -->
 <!-- ===================== -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+
+    let selected = [];
 
     const cards = document.querySelectorAll('.class-card');
     const panel = document.querySelector('.selected-list');
 
-    function updatePanel() {
+    function getId(card) {
+        return `${card.dataset.time}-${card.dataset.day}-${card.dataset.subject}`;
+    }
+
+    function renderPanel() {
 
         panel.innerHTML = '';
 
-        document.querySelectorAll('.class-card.selected').forEach(card => {
-
-            const title = card.querySelector('.class-header').innerText;
-            const teacher = card.querySelector('.class-teacher').innerText;
+        selected.forEach(item => {
 
             const div = document.createElement('div');
             div.className = 'selected-item';
 
             div.innerHTML = `
-                <span>${title} - ${teacher}</span>
-                <button class="remove-btn">Remove</button>
+                <span>${item.subject} - ${item.teacher} (${item.time}, ${item.day})</span>
+                <button class="remove-btn" data-id="${item.id}">Remove</button>
             `;
 
             panel.appendChild(div);
-
         });
+    }
+
+    function addItem(card) {
+
+        selected.push({
+            id: getId(card),
+            time: card.dataset.time,
+            day: card.dataset.day,
+            subject: card.dataset.subject,
+            teacher: card.dataset.teacher
+        });
+    }
+
+    function removeItem(card) {
+
+        const id = getId(card);
+        selected = selected.filter(i => i.id !== id);
     }
 
     cards.forEach(card => {
@@ -208,11 +226,20 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        card.addEventListener('click', function() {
+        card.addEventListener('click', function () {
 
-            this.classList.toggle('selected');
-            updatePanel();
+            const id = getId(this);
+            const exists = selected.find(i => i.id === id);
 
+            if (exists) {
+                this.classList.remove('selected');
+                removeItem(this);
+            } else {
+                this.classList.add('selected');
+                addItem(this);
+            }
+
+            renderPanel();
         });
 
     });
