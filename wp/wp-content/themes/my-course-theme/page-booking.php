@@ -245,17 +245,7 @@
                         <?php if (isset($data[$time][$day])): ?>
 
                             <?php foreach ($data[$time][$day] as $class): ?>
-                                <?php
-                                    $card_style = '';
-                                    if ($class['status'] === 'booked') {
-                                        $card_style = 'border: 2px solid #28a745; background-color: #f4fbf6;';
-                                    } elseif ($class['status'] === 'course-conflict') {
-                                        $card_style = 'border: 2px solid #ff9800; background-color: #fff9e6; opacity: 0.7;';
-                                    } elseif ($class['status'] === 'disabled') {
-                                        $card_style = 'border: 1px solid #eeeeee; background-color: #eeeeee; opacity: 0.5;';
-                                    }
-                                ?>
-                                <div class="class-card <?php echo $class['status']; ?>"
+                                <div class="class-card <?php echo $class['status']; ?> subject-<?php echo sanitize_title($class['subject']); ?>"
 
                                     data-time="<?php echo $time; ?>"
                                     data-day="<?php echo $day; ?>"
@@ -263,8 +253,6 @@
                                     data-teacher="<?php echo $class['teacher']; ?>"
                                     data-course-id="<?php echo $class['course_id'] ?? 0; ?>"
                                     data-weeks="<?php echo htmlspecialchars(json_encode($class['weeks'])); ?>"
-
-                                    style="<?php echo $card_style; ?>"
                                 >
 
                                     <div class="class-header">
@@ -277,9 +265,9 @@
 
                                     <?php if ($class['status'] === 'booked'): ?>
                                         <div class="badge booked">BOOKED</div>
-                                    <?php elseif ($class['status'] === 'conflict'): ?>
+                                    <?php elseif ($class['status'] === 'course-conflict'): ?>
                                         <div class="badge conflict">CONFLICT</div>
-                                    <?php endif; ?>
+                                    <?php endif;?>
 
                                     <div class="week-options">
 

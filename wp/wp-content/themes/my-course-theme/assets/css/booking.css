@@ -331,3 +331,23 @@ body {
 .hidden {
     display: none;
 }
+
+.class-card.booked {
+    border: 2px solid #28a745 !important;
+    background-color: #f4fbf6 !important;
+}
+
+.class-card.course-conflict,
+.class-card.disabled,
+.class-card.init-conflict,
+.class-card.live-conflict {
+    border: 1px solid #ea3737 !important;
+    background-color: #f8f9fa !important;
+    opacity: 0.6 !important;
+}
+
+.class-card.my-choice {
+    border: 2px solid #007bff !important;
+    background-color: #e7f3ff !important;
+    opacity: 1 !important;
+}
