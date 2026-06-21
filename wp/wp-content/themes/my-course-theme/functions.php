@@ -43,3 +43,15 @@ add_action('init', function () {
         exit;
     }
 });
+
+
+function my_theme_assets() {
+    wp_enqueue_style(
+        'booking-style',
+        get_template_directory_uri() . '/assets/booking.css',
+        array(),
+        '1.0'
+    );
+}
+
+add_action('wp_enqueue_scripts', 'my_theme_assets');
