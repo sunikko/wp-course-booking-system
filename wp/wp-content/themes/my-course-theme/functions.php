@@ -73,11 +73,29 @@ add_action('wp_ajax_submit_booking', 'submit_booking');
 add_action('wp_ajax_nopriv_submit_booking', 'submit_booking');
 
 function submit_booking() {
+    if (!is_user_logged_in()) {
+        wp_send_json_error([
+            'message' => 'Login required'
+        ]);
+        return;
+    }
 
-    $data = $_POST['selected'] ?? [];
+    $user_id = get_current_user_id();
+
+    $selected = isset($_POST['selected'])
+        ? json_decode(stripslashes($_POST['selected']), true)
+        : [];
+
+    if (empty($selected)) {
+        wp_send_json_error([
+            'message' => 'No booking data received'
+        ]);
+        return;
+    }
 
     wp_send_json_success([
         'message' => 'Booking received successfully',
-        'received_data' => $data
+        'user_id' => $user_id,
+        'bookings' => $selected
     ]);
 }

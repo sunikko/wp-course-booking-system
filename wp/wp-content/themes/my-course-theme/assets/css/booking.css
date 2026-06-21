@@ -192,3 +192,79 @@ body {
     border: 2px solid #007bff;
     background: #f0f8ff;
 }
+
+/* AUTH BAR */
+.auth-bar {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+/* LOGGED IN STATE */
+.auth-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f5f7fa;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.auth-user {
+    font-weight: 600;
+    color: #333;
+}
+
+.auth-logout {
+    background: #ff4d4f;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.auth-logout:hover {
+    background: #d9363e;
+}
+
+/* LOGIN BOX */
+.auth-login-box {
+    width: 260px;
+    background: #fff;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.auth-login-box h3 {
+    margin-bottom: 10px;
+}
+
+/* WP login form default override */
+.auth-login-box input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.auth-login-box input[type="submit"] {
+    background: #1677ff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.auth-login-box input[type="submit"]:hover {
+    background: #0f5ed7;
+}
+
+.auth-register {
+    margin-top: 10px;
+    font-size: 12px;
+    text-align: center;
+}

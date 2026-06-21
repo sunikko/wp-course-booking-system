@@ -1,4 +1,61 @@
+<div class="auth-bar">
+
+<?php if (is_user_logged_in()): ?>
+
+    <div class="auth-right">
+
+        <span class="auth-user">
+            👤 <?php
+                $user = wp_get_current_user();
+                echo esc_html($user->user_login);
+            ?>
+        </span>
+
+        <a class="auth-logout"
+           href="<?php echo wp_logout_url(get_permalink()); ?>">
+            Logout
+        </a>
+
+    </div>
+
+<?php endif; ?>
+
+</div>
+
 <?php get_header(); ?>
+
+<div class="container">
+
+<?php if (!is_user_logged_in()): ?>
+
+ <div class="auth-login-box">
+
+        <h3>🔒 Login</h3>
+
+        <?php wp_login_form([
+            'label_username' => 'Username',
+            'label_password' => 'Password',
+            'label_remember' => 'Remember Me',
+            'label_log_in' => 'Login'
+        ]); ?>
+
+        <p class="auth-register">
+            No account?
+            <a href="<?php echo wp_registration_url(); ?>" target="_blank">
+                Sign up
+            </a>
+        </p>
+
+    </div>
+
+
+
+</div>
+
+<?php get_footer(); ?>
+<?php return; ?>
+
+<?php endif; ?>
 
 <div class="container">
 
