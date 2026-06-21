@@ -16,7 +16,10 @@ function register_courses_post_type()
             'singular_name' => 'Course'
         ],
         'public' => true,
-        'has_archive' => true,
+        'has_archive' => 'courses',
+        'rewrite' => [
+            'slug' => 'courses'
+        ],
         'supports' => ['title', 'editor'],
         'menu_icon' => 'dashicons-welcome-learn-more'
     ]);
