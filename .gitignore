@@ -2,6 +2,7 @@
 # WordPress Core
 # =========================
 wordpress/
+# wp/
 
 # =========================
 # Database
@@ -37,3 +38,20 @@ Thumbs.db
 # Environment files
 # =========================
 .env
+
+# =========================
+# Plugins
+# =========================
+wp/wp-content/plugins/
+
+
+# =========================
+# Languages
+# =========================
+wp/wp-content/languages/
+
+
+# =========================
+# uploads
+# =========================
+wp/wp-content/uploads/
