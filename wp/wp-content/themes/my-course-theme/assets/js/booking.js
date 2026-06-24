@@ -3,475 +3,266 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const radios = document.querySelectorAll(".week-radio");
   const panel = document.querySelector(".selected-list");
-
   const clearBtn = document.querySelector(".btn-secondary");
+  const submitBtn = document.querySelector(".btn-primary");
+
+  // Syncs the 'selected' array perfectly with checked DOM elements
+  function syncSelected() {
+    selected = [];
+    document.querySelectorAll(".week-radio:checked").forEach((radio) => {
+      if (!radio.closest(".class-card").classList.contains("booked")) {
+        selected.push({
+          course_id: radio.dataset.courseId || 0,
+          subject: radio.dataset.subject,
+          teacher: radio.dataset.teacher,
+          day: radio.dataset.day,
+          time: radio.dataset.time,
+          week: radio.dataset.week,
+          booking_date: radio.dataset.bookingDate,
+        });
+      }
+    });
+    renderPanel();
+  }
 
   function renderPanel() {
     panel.innerHTML = "";
 
     if (selected.length === 0) {
       panel.innerHTML = `
-                <div class="empty-state">
-                    No bookings selected
-                </div>
-            `;
-
+        <div class="empty-state">
+          No bookings selected
+        </div>
+      `;
       return;
     }
 
     selected.forEach((item) => {
       const div = document.createElement("div");
-
       div.className = "selected-item";
+      
+      // Add subject class for potential CSS grouping (e.g., .subject-math)
+      if (item.subject) {
+        const subjectClass = "subject-" + item.subject.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        div.classList.add(subjectClass);
+      }
 
       div.innerHTML = `
-                <div>
-                    <strong>${item.subject}</strong> - ${item.teacher}
-                    <br>
-                    ${item.day} ${item.time}
-                    <br>
-                    Week: ${item.week}
-                </div>
-            `;
-
+        <div>
+          <strong>${item.subject}</strong> - ${item.teacher}
+          <br>
+          ${item.day} ${item.time}
+          <br>
+          Date: ${item.booking_date}
+        </div>
+      `;
+      
       panel.appendChild(div);
     });
   }
 
-  function addOrUpdateBooking(booking) {
-    selected = selected.filter((item) => {
-      return !(
-        item.subject === booking.subject &&
-        item.day === booking.day &&
-        item.time === booking.time
-      );
-    });
-
-    selected.push(booking);
-
-    renderPanel();
-  }
-
-  function submitBooking() {
-    if (selected.length === 0) {
-      alert("No bookings selected");
-      return;
-    }
-
-    const submitBtn = document.getElementById("submit-bookings");
-    fetch(wpData.ajaxUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        action: "submit_booking",
-        selected: JSON.stringify(selected),
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("SERVER RESPONSE:", data);
-
-        if (data.success) {
-          if (submitBtn) {
-            submitBtn.innerText = "✓ Booking Successful!";
-            submitBtn.style.backgroundColor = "#28a745";
-            submitBtn.disabled = true;
-          }
-
-          alert("Booking successfully saved!\n" + data.data.booked.join("\n"));
-          location.reload();
-        } else {
-          alert("Error: " + (data.data.message || "Unknown error"));
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        alert("Error submitting booking");
-      });
-  }
-
-  const loginModal = document.getElementById("login-modal");
-  const overlay = document.getElementById("auth-overlay");
-
-  function openLoginModal() {
-    loginModal.classList.remove("hidden");
-    overlay.classList.remove("hidden");
-  }
-
-  function closeModal() {
-    loginModal.classList.add("hidden");
-    overlay.classList.add("hidden");
-  }
-
-  overlay.addEventListener("click", closeModal);
-
-  document.querySelectorAll(".close-modal").forEach((btn) => {
-    btn.addEventListener("click", closeModal);
-  });
-
-  document.querySelectorAll(".login-btn").forEach((btn) => {
-    btn.addEventListener("click", function (e) {
-      e.preventDefault();
-      openLoginModal();
-    });
-  });
-  overlay.addEventListener("click", closeModal);
-
-  document.querySelectorAll(".close-modal").forEach((btn) => {
-    btn.addEventListener("click", closeModal);
-  });
-
-  const isLoggedIn = wpData.isLoggedIn;
-
-  console.log("LOGIN STATUS:", isLoggedIn);
-
-  if (!isLoggedIn) {
-    openLoginModal();
-  }
-
-  const bookedCards = document.querySelectorAll(".class-card.booked");
-  const bookedSubjectClasses = [];
-
-  bookedCards.forEach((card) => {
-    card.classList.forEach((cls) => {
-      if (cls.startsWith("subject-")) {
-        bookedSubjectClasses.push(cls);
-      }
-    });
-  });
-
-  bookedSubjectClasses.forEach((subjectClass) => {
-    const conflictCards = document.querySelectorAll(
-      `.class-card.available.${subjectClass}`,
-    );
-
-    conflictCards.forEach((card) => {
-      card.classList.remove("available");
-      card.classList.add("course-conflict");
-      card.style.border = "1px solid #ef2727";
-      card.style.backgroundColor = "#eeeeee";
-      card.style.opacity = "0.7";
-
-      const badge = document.createElement("div");
-      badge.className = "badge conflict";
-      badge.innerText = "CONFLICT";
-
-      const teacherDiv = card.querySelector(".class-teacher");
-      if (teacherDiv) {
-        teacherDiv.parentNode.insertBefore(badge, teacherDiv.nextSibling);
-      }
-      const badgeArea = card.querySelector(".week-options");
-      if (badgeArea) {
-        const inputs = card.querySelectorAll(".week-radio");
-        inputs.forEach((input) => (input.disabled = true));
-      }
-    });
-  });
-
-  radios.forEach((radio) => {
-    radio.addEventListener("change", function () {
-      const booking = {
-        course_id: this.dataset.courseId || 0,
-        subject: this.dataset.subject,
-        teacher: this.dataset.teacher,
-        day: this.dataset.day,
-        time: this.dataset.time,
-        week: this.dataset.week,
-      };
-
-      addOrUpdateBooking(booking);
-    });
-  });
-
-  clearBtn.addEventListener("click", function () {
-    selected = [];
-
-    radios.forEach((radio) => {
-      radio.checked = false;
-    });
-
-    renderPanel();
-  });
-
-  document
-    .querySelector(".btn-primary")
-    .addEventListener("click", submitBooking);
-
-  renderPanel();
-});
-
-///////////////////////////////////////////////////////////////////////////
-//
-///////////////////////////////////////////////////////////////////////////
-
-document.addEventListener("DOMContentLoaded", function () {
-  const radios = document.querySelectorAll(".week-radio");
-  const clearBtn =
-    document.querySelector(".action-buttons .btn-secondary") ||
-    document.querySelector(".btn-secondary");
-  const selectedListDiv = document.querySelector(".selected-list");
-
-  function initBookedConflicts() {
-    const bookedCards = document.querySelectorAll(".class-card.booked");
-    const bookedSubjectClasses = [];
-    const bookedSlots = [];
-
-    bookedCards.forEach((card) => {
-      card.classList.forEach((cls) => {
-        if (cls.startsWith("subject-")) {
-          bookedSubjectClasses.push(cls);
-        }
-      });
-
-      let day = card.getAttribute("data-day");
-      let time = card.getAttribute("data-time");
-
-      if (!day || !time) {
-        const radio = card.querySelector(".week-radio");
-        if (radio) {
-          day = radio.getAttribute("data-day");
-          time = radio.getAttribute("data-time");
-        }
-      }
-
-      if (day && time) {
-        bookedSlots.push(day.trim() + "-" + time.trim());
-      }
-    });
-
-    const availableCards = document.querySelectorAll(".class-card.available");
-
-    availableCards.forEach((card) => {
-      let shouldBlock = false;
-
-      card.classList.forEach((cls) => {
-        if (bookedSubjectClasses.includes(cls)) {
-          shouldBlock = true;
-        }
-      });
-
-      let currentDay = card.getAttribute("data-day");
-      let currentTime = card.getAttribute("data-time");
-
-      if (!currentDay || !currentTime) {
-        const radio = card.querySelector(".week-radio");
-        if (radio) {
-          currentDay = radio.getAttribute("data-day");
-          currentTime = radio.getAttribute("data-time");
-        }
-      }
-
-      if (currentDay && currentTime) {
-        const currentSlot = currentDay.trim() + "-" + currentTime.trim();
-        if (bookedSlots.includes(currentSlot)) {
-          shouldBlock = true;
-        }
-      }
-
-      if (shouldBlock) {
-        card.classList.remove("available");
-        card.classList.add("init-conflict");
-        card.style.border = "2px solid #ff9800";
-        card.style.backgroundColor = "#fff9e6";
-        card.style.opacity = "0.7";
-
-        insertConflictBadge(card);
-        card
-          .querySelectorAll(".week-radio")
-          .forEach((input) => (input.disabled = true));
-      }
-    });
-  }
-
-  function insertConflictBadge(card) {
-    if (card.querySelector(".badge.conflict")) return;
-    const badge = document.createElement("div");
-    badge.className = "badge conflict";
-    badge.innerText = "CONFLICT";
-
-    const teacherDiv = card.querySelector(".class-teacher");
-    if (teacherDiv) {
-      teacherDiv.parentNode.insertBefore(badge, teacherDiv.nextSibling);
-    }
-  }
-
-  function updateSelectedList() {
-    if (!selectedListDiv) return;
-
-    const checkedRadios = Array.from(radios).filter(
-      (r) =>
-        r.checked && !r.closest(".class-card").classList.contains("booked"),
-    );
-
-    selectedListDiv.innerHTML = "";
-
-    if (checkedRadios.length === 0) {
-      selectedListDiv.innerHTML =
-        '<p class="no-selection" style="color: #999; font-size: 14px;">No classes selected.</p>';
-      return;
-    }
-
-    checkedRadios.forEach((r) => {
-      const subject = r.getAttribute("data-subject");
-      const week = r.getAttribute("data-week");
-      const day = r.getAttribute("data-day");
-      const time = r.getAttribute("data-time");
-
-      const item = document.createElement("div");
-      item.className = "selected-item";
-      item.style.padding = "6px 12px";
-      item.style.marginBottom = "6px";
-      item.style.backgroundColor = "#e7f3ff";
-      item.style.borderLeft = "4px solid #007bff";
-      item.style.borderRadius = "4px";
-      item.style.fontSize = "13px";
-
-      item.innerHTML = `<strong>${subject}</strong> - ${week} (${day} ${time})`;
-      selectedListDiv.appendChild(item);
-    });
-  }
-
+  // Applies CONFLICT state to duplicate subjects and timeslots
   function handleLiveConflicts() {
     const checkedRadios = Array.from(radios).filter(
-      (r) =>
-        r.checked && !r.closest(".class-card").classList.contains("booked"),
+      (r) => r.checked && !r.closest(".class-card").classList.contains("booked")
     );
+    
     const activeCards = checkedRadios.map((r) => r.closest(".class-card"));
+    const activeSubjects = checkedRadios.map((r) => r.dataset.subject);
+    const activeSlots = checkedRadios.map((r) => r.dataset.day + "-" + r.dataset.time);
 
-    const activeSubjects = checkedRadios.map((r) =>
-      r.getAttribute("data-subject"),
-    );
-    const activeSlots = checkedRadios.map(
-      (r) => r.getAttribute("data-day") + "-" + r.getAttribute("data-time"),
-    );
-
-    const staticBlockedCards = document.querySelectorAll(
-      ".class-card.booked, .class-card.init-conflict",
-    );
-    staticBlockedCards.forEach((card) => {
-      card.classList.forEach((cls) => {
-        if (cls.startsWith("subject-")) {
-          const sub =
-            card.getAttribute("data-subject") ||
-            (card.querySelector(".week-radio")
-              ? card.querySelector(".week-radio").getAttribute("data-subject")
-              : null);
-          if (sub && !activeSubjects.includes(sub)) {
-            activeSubjects.push(sub);
-          }
-        }
-      });
+    // Grab subjects/slots that are statically booked by the user
+    const staticBookedCards = document.querySelectorAll(".class-card.booked");
+    staticBookedCards.forEach((card) => {
+      let sub = card.getAttribute("data-subject");
+      if (sub && !activeSubjects.includes(sub)) activeSubjects.push(sub);
 
       let d = card.getAttribute("data-day");
       let t = card.getAttribute("data-time");
-      if (!d || !t) {
-        const r = card.querySelector(".week-radio");
-        if (r) {
-          d = r.getAttribute("data-day");
-          t = r.getAttribute("data-time");
-        }
-      }
       if (d && t) {
         const slotKey = d.trim() + "-" + t.trim();
-        if (!activeSlots.includes(slotKey)) {
-          activeSlots.push(slotKey);
-        }
+        if (!activeSlots.includes(slotKey)) activeSlots.push(slotKey);
       }
     });
 
-    radios.forEach((r) => {
-      const card = r.closest(".class-card");
+    const allCards = document.querySelectorAll(".class-card");
 
+    allCards.forEach((card) => {
+      // Skip static PHP states
       if (
         card.classList.contains("booked") ||
-        card.classList.contains("init-conflict")
+        card.classList.contains("course-conflict") ||
+        card.classList.contains("disabled") ||
+        card.classList.contains("fully-booked")
       ) {
-        return;
+        return; 
       }
 
+      const cardRadios = card.querySelectorAll(".week-radio");
+      const cardSubject = card.getAttribute("data-subject");
+      const cardSlotKey = card.getAttribute("data-day") + "-" + card.getAttribute("data-time");
+
+      // 1. This card is currently selected by the user
       if (activeCards.includes(card)) {
-        r.disabled = false;
         card.classList.remove("live-conflict");
         card.style.border = "2px solid #007bff";
         card.style.backgroundColor = "#e7f3ff";
         card.style.opacity = "1";
+        
+        cardRadios.forEach(r => r.disabled = false);
 
-        const liveBadge = card.querySelector(".badge.conflict");
+        const liveBadge = card.querySelector(".badge.live-conflict-badge");
         if (liveBadge) liveBadge.remove();
         return;
       }
 
-      const currentSubject = r.getAttribute("data-subject");
-      const currentSlotKey =
-        r.getAttribute("data-day") + "-" + r.getAttribute("data-time");
-
+      // 2. This card conflicts with an active subject or timeslot
       if (
-        activeSubjects.includes(currentSubject) ||
-        activeSlots.includes(currentSlotKey)
+        activeSubjects.includes(cardSubject) ||
+        activeSlots.includes(cardSlotKey)
       ) {
-        r.disabled = true;
         card.classList.add("live-conflict");
-        card.style.border = "2px solid rgb(242 203 146 / 88%);";
+        card.style.border = "2px solid rgb(242 203 146 / 88%)";
         card.style.backgroundColor = "white";
         card.style.opacity = "0.7";
-        insertConflictBadge(card);
-      } else {
-        r.disabled = false;
+        
+        // DISABLE the radio buttons to prevent clicking
+        cardRadios.forEach(r => r.disabled = true);
+        
+        if (!card.querySelector(".badge.conflict")) {
+          const badge = document.createElement("div");
+          badge.className = "badge conflict live-conflict-badge";
+          badge.innerText = "CONFLICT";
+          const teacherDiv = card.querySelector(".class-teacher");
+          if (teacherDiv) teacherDiv.parentNode.insertBefore(badge, teacherDiv.nextSibling);
+        }
+      } 
+      // 3. This card is fully available
+      else {
         card.classList.remove("live-conflict");
         card.style.border = "";
         card.style.backgroundColor = "";
         card.style.opacity = "";
+        
+        // ENABLE the radio buttons
+        cardRadios.forEach(r => r.disabled = false);
 
-        const liveBadge = card.querySelector(".badge.conflict");
+        const liveBadge = card.querySelector(".badge.live-conflict-badge");
         if (liveBadge) liveBadge.remove();
       }
     });
-
-    updateSelectedList();
   }
 
+  // Radio button toggle logic (bypasses default browser behavior)
   radios.forEach((radio) => {
+    // Record state right before click
+    radio.addEventListener("mousedown", function () {
+      this.dataset.wasChecked = this.checked ? "true" : "false";
+    });
+
     radio.addEventListener("click", function (e) {
       if (this.closest(".class-card").classList.contains("booked")) return;
 
-      if (this.classList.contains("is-checked")) {
+      if (this.dataset.wasChecked === "true") {
+        // Deselect
         this.checked = false;
-        this.classList.remove("is-checked");
-
-        handleLiveConflicts();
+        this.dataset.wasChecked = "false";
       } else {
+        // Select
+        this.dataset.wasChecked = "true";
         const name = this.getAttribute("name");
-        document
-          .querySelectorAll(`input[name="${name}"]`)
-          .forEach((r) => r.classList.remove("is-checked"));
-
-        this.classList.add("is-checked");
+        document.querySelectorAll(`input[name="${name}"]`).forEach((r) => {
+          if (r !== this) r.dataset.wasChecked = "false";
+        });
       }
+
+      syncSelected(); 
+      handleLiveConflicts(); 
     });
   });
 
   if (clearBtn) {
     clearBtn.addEventListener("click", function (e) {
       e.preventDefault();
-
       radios.forEach((radio) => {
         if (!radio.closest(".class-card").classList.contains("booked")) {
           radio.checked = false;
-          radio.classList.remove("is-checked");
+          radio.dataset.wasChecked = "false";
         }
       });
-
-      handleLiveConflicts();
-      console.log("🧹 모든 선택 및 패널 리스트가 초기화되었습니다.");
+      syncSelected(); 
+      handleLiveConflicts(); 
     });
   }
 
-  initBookedConflicts();
-  handleLiveConflicts();
+  if (submitBtn) {
+    submitBtn.addEventListener("click", function () {
+      if (selected.length === 0) {
+        alert("No bookings selected.");
+        return;
+      }
 
-  radios.forEach((radio) => {
-    radio.addEventListener("change", handleLiveConflicts);
+      fetch(wpData.ajaxUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          action: "submit_booking",
+          selected: JSON.stringify(selected),
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            submitBtn.innerText = "Booking Successful!";
+            submitBtn.style.backgroundColor = "#28a745";
+            submitBtn.disabled = true;
+            alert("Booking successfully saved!");
+            location.reload();
+          } else {
+            alert("Error: " + (data.data.message || "Unknown error"));
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          alert("Error submitting booking.");
+        });
+    });
+  }
+
+  // Auth Modals
+  const loginModal = document.getElementById("login-modal");
+  const overlay = document.getElementById("auth-overlay");
+
+  function openLoginModal() {
+    if (loginModal && overlay) {
+      loginModal.classList.remove("hidden");
+      overlay.classList.remove("hidden");
+    }
+  }
+
+  function closeModal() {
+    if (loginModal && overlay) {
+      loginModal.classList.add("hidden");
+      overlay.classList.add("hidden");
+    }
+  }
+
+  if (overlay) overlay.addEventListener("click", closeModal);
+  document.querySelectorAll(".close-modal").forEach((btn) => {
+    btn.addEventListener("click", closeModal);
   });
+  document.querySelectorAll(".login-btn").forEach((btn) => {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      openLoginModal();
+    });
+  });
+
+  if (typeof wpData !== 'undefined' && !wpData.isLoggedIn) {
+    openLoginModal();
+  }
+
+  // Initialize
+  syncSelected();
+  handleLiveConflicts();
 });

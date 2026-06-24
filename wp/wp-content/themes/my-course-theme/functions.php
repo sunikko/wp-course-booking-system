@@ -102,6 +102,7 @@ add_action('wp_ajax_nopriv_submit_booking', 'submit_booking');
 add_action('wp_ajax_submit_booking', 'submit_booking');
 add_action('wp_ajax_nopriv_submit_booking', 'submit_booking');
 
+
 function submit_booking()
 {
     if (!is_user_logged_in()) {
@@ -120,9 +121,7 @@ function submit_booking()
 
     foreach ($selected as $item) {
         $course_id = isset($item['course_id']) ? intval($item['course_id']) : 0;
-        $day   = sanitize_text_field($item['day']);
-        $time  = sanitize_text_field($item['time']);
-        $week  = sanitize_text_field($item['week']);
+        $booking_date = isset($item['booking_date']) ? sanitize_text_field($item['booking_date']) : '';
         $subject = sanitize_text_field($item['subject']);
         $teacher = sanitize_text_field($item['teacher']);
 
@@ -131,31 +130,37 @@ function submit_booking()
             continue;
         }
 
+        if (empty($booking_date)) {
+            $errors[] = "$subject - $teacher: Booking date missing";
+            continue;
+        }
+
+        // Capacity check
         $capacity = intval(get_field('capacity', $course_id));
         if ($capacity <= 0) {
             $errors[] = "$subject - $teacher: No capacity left";
             continue;
         }
 
+        // Duplicate check using booking_date only
         $existing = new WP_Query([
             'post_type'      => 'booking',
             'posts_per_page' => 1,
             'meta_query'     => [
                 'relation' => 'AND',
                 ['key' => 'course_id', 'value' => $course_id],
-                ['key' => 'booking_day', 'value' => $day],
-                ['key' => 'booking_time', 'value' => $time],
-                ['key' => 'booking_week', 'value' => $week],
+                ['key' => 'booking_date', 'value' => $booking_date],
                 ['key' => 'user_id', 'value' => $user_id],
             ],
             'post_status' => 'publish',
         ]);
 
         if ($existing->have_posts()) {
-            $errors[] = "$subject - $teacher: Already booked this slot";
+            $errors[] = "$subject - $teacher: Already booked this date";
             continue;
         }
 
+        // Save booking
         $booking_id = wp_insert_post([
             'post_title'  => $subject . ' - ' . $teacher,
             'post_type'   => 'booking',
@@ -167,13 +172,14 @@ function submit_booking()
             continue;
         }
 
+        // Save meta fields
         update_field('course_id', $course_id, $booking_id);
-        update_field('booking_day', $day, $booking_id);
-        update_field('booking_time', $time, $booking_id);
-        update_field('booking_week', $week, $booking_id);
+        update_field('booking_date', $booking_date, $booking_id);
+        update_field('booked_at', current_time('mysql'), $booking_id);
         update_field('user_id', $user_id, $booking_id);
         update_field('status', 'confirmed', $booking_id);
 
+        // Decrease capacity
         update_field('capacity', $capacity - 1, $course_id);
 
         $success[] = "$subject - $teacher booked successfully!";
