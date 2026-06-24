@@ -45,7 +45,8 @@ add_action('init', function () {
     }
 });
 
-function my_theme_assets() {
+function my_theme_assets()
+{
 
     wp_enqueue_style(
         'booking-style',
@@ -54,13 +55,20 @@ function my_theme_assets() {
         '1.0'
     );
 
+    wp_enqueue_style(
+        'my-bookings-style',
+        get_template_directory_uri() . '/assets/css/my-bookings.css',
+        array(),
+        '1.0'
+    );
+
     wp_enqueue_script(
-            'booking-js',
-            get_template_directory_uri() . '/assets/js/booking.js',
-            array(),
-            '1.0',
-            true // footer load (IMPORTANT)
-        );
+        'booking-js',
+        get_template_directory_uri() . '/assets/js/booking.js',
+        array(),
+        '1.0',
+        true // footer load (IMPORTANT)
+    );
 
     wp_localize_script('booking-js', 'wpData', array(
         'isLoggedIn' => is_user_logged_in(),
@@ -76,7 +84,8 @@ add_action('wp_ajax_nopriv_submit_booking', 'submit_booking');
 add_action('wp_ajax_submit_booking', 'submit_booking');
 add_action('wp_ajax_nopriv_submit_booking', 'submit_booking');
 
-function submit_booking() {
+function submit_booking()
+{
     if (!is_user_logged_in()) {
         wp_send_json_error(['message' => 'Login required']);
     }
@@ -160,7 +169,8 @@ function submit_booking() {
 }
 
 // Register Booking CPT
-function register_booking_post_type() {
+function register_booking_post_type()
+{
     register_post_type('booking', [
         'labels' => [
             'name'               => 'Bookings',
@@ -185,11 +195,9 @@ function register_booking_post_type() {
 add_action('init', 'register_booking_post_type');
 
 
-
-
-
 // functions.php - Course는 시작일만 저장
-function generate_correct_demo_data() {
+function generate_correct_demo_data()
+{
     $now = current_time('timestamp');
     $today_numeric = intval(date('w', $now));
     $days_to_subtract = ($today_numeric === 0) ? 6 : ($today_numeric - 1);
