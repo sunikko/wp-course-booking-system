@@ -37,7 +37,7 @@
                     <a href="<?php echo wp_logout_url(home_url()); ?>" class="btn-nav btn-logout">Logout</a>
                 <?php else: ?>
                     <a href="#" class="btn-nav login-btn">Login</a>
-                    <a href="<?php echo wp_registration_url(); ?>" class="btn-nav btn-signup">Sign Up</a>
+                    <a href="<?php echo esc_url(home_url('/register')); ?>" class="btn-nav btn-signup">Sign Up</a>
                 <?php endif; ?>
             </div>
         </div>

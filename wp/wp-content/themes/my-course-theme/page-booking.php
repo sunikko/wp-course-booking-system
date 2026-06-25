@@ -4,7 +4,7 @@
         <div class="auth-login-box">
             <h3>🔒 Login Required</h3>
             <p><a href="#" class="login-btn">Login</a></p>
-            <p>No account? <a href="<?php echo wp_registration_url(); ?>" target="_blank">Sign up</a></p>
+            <p>No account? <a href="<?php echo esc_url(home_url('/register')); ?>" target="_blank">Sign Up</a></p>
         </div>
 </div>
 <?php get_footer(); ?>

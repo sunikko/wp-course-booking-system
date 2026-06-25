@@ -13,7 +13,7 @@ get_header(); ?>
         <div class="hero-buttons">
             <a href="<?php echo home_url('/booking/'); ?>" class="btn-cta">📅 Book a Class</a>
             <?php if (!is_user_logged_in()): ?>
-                <a href="<?php echo wp_registration_url(); ?>" class="btn-outline">Sign Up</a>
+                <a href="<?php echo esc_url(home_url('/register')); ?>" class="btn-outline">Sign Up</a>
             <?php endif; ?>
         </div>
     </div>

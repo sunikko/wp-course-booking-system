@@ -4,9 +4,11 @@ get_header();
 
 ?>
 
-<h1>Hello WordPress Portfolio!</h1>
-
-<p>My first custom theme.</p>
+<?php
+while (have_posts()) : the_post();
+    the_content();
+endwhile;
+?>
 
 <?php
 

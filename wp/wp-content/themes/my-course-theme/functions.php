@@ -271,7 +271,76 @@ function handle_cancel_booking()
 }
 add_action('wp_ajax_cancel_booking', 'handle_cancel_booking');
 
-// functions.php - Course는 시작일만 저장
+
+function edubook_custom_registration_form()
+{
+    if (is_user_logged_in()) {
+        return '<p>You are already logged in.</p>';
+    }
+
+    $message = '';
+
+    if (isset($_POST['edubook_register_nonce']) && wp_verify_nonce($_POST['edubook_register_nonce'], 'edubook_register_action')) {
+        $username = sanitize_user($_POST['username']);
+        $email = sanitize_email($_POST['email']);
+        $password = $_POST['password'];
+
+        $errors = new WP_Error();
+
+        if (empty($username) || empty($email) || empty($password)) {
+            $errors->add('field', 'All fields are required.');
+        }
+        if (username_exists($username)) {
+            $errors->add('user_name', 'Sorry, that username already exists!');
+        }
+        if (!is_email($email)) {
+            $errors->add('email_invalid', 'Email is not valid.');
+        }
+        if (email_exists($email)) {
+            $errors->add('email', 'Email is already in use.');
+        }
+
+        if (empty($errors->get_error_codes())) {
+            $user_id = wp_create_user($username, $password, $email);
+            if (!is_wp_error($user_id)) {
+                wp_set_current_user($user_id);
+                wp_set_auth_cookie($user_id);
+                wp_redirect(home_url('/'));
+                exit;
+            } else {
+                $message = '<p style="color:red;">Error creating user.</p>';
+            }
+        } else {
+            $message = '<p style="color:red;">' . $errors->get_error_message() . '</p>';
+        }
+    }
+
+    ob_start();
+    echo $message;
+?>
+    <form method="POST" action="">
+        <p>
+            <label for="username">Username</label><br />
+            <input type="text" name="username" id="username" required />
+        </p>
+        <p>
+            <label for="email">Email</label><br />
+            <input type="email" name="email" id="email" required />
+        </p>
+        <p>
+            <label for="password">Password</label><br />
+            <input type="password" name="password" id="password" required />
+        </p>
+        <?php wp_nonce_field('edubook_register_action', 'edubook_register_nonce'); ?>
+        <p>
+            <input type="submit" value="Sign Up" />
+        </p>
+    </form>
+<?php
+    return ob_get_clean();
+}
+add_shortcode('edubook_register', 'edubook_custom_registration_form');
+
 function edubook_trigger_demo_data_generation()
 {
     if (isset($_GET['generate_demo']) && $_GET['generate_demo'] === 'now') {
