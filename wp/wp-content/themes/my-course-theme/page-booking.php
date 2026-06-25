@@ -1,36 +1,4 @@
-<div class="auth-bar">
-    <?php if (is_user_logged_in()): ?>
-        <div class="auth-right">
-            <span class="auth-user">
-                👤 <?php
-                    $user = wp_get_current_user();
-                    echo esc_html($user->user_login);
-                    ?>
-            </span>
-            <a class="auth-logout" href="<?php echo wp_logout_url(get_permalink()); ?>">
-                Logout
-            </a>
-        </div>
-    <?php endif; ?>
-</div>
-
 <?php get_header(); ?>
-
-<div id="auth-overlay" class="auth-overlay hidden"></div>
-<div id="login-modal" class="auth-modal hidden">
-    <div class="auth-box">
-        <h2>Login</h2>
-        <?php wp_login_form([
-            'label_username' => 'Username',
-            'label_password' => 'Password',
-            'label_log_in' => 'Login',
-            'remember' => true,
-        ]); ?>
-        <p>No account? <a href="<?php echo wp_registration_url(); ?>">Sign up</a></p>
-        <button class="close-modal" data-close="login">Close</button>
-    </div>
-</div>
-
 <div class="container">
     <?php if (!is_user_logged_in()): ?>
         <div class="auth-login-box">
