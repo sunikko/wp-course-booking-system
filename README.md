@@ -10,11 +10,18 @@ A custom, backend-focused WordPress development project featuring a dynamic, tim
   - Conflict prevention: Automatically blocks overlapping timeslots and prevents duplicate bookings on the same date.
 - User Dashboard (My Bookings): Users can view confirmed bookings and cancel them. Cancellations use a soft-delete approach (status: cancelled) to maintain booking history and automatically restore course capacity.
 
+### Key Technical Achievements
+- **Infrastructure & DevOps:** Deployed on an AWS Ubuntu server using Docker, managed with Nginx as a reverse proxy, and secured with SSL/TLS (HTTPS).
+- **Backend Customization:** Built a custom WordPress theme with bespoke functionality using PHP and WordPress Hooks (`init`, `enqueue_scripts`, `after_setup_theme`).
+- **Data Modeling:** Designed custom data structures using Custom Post Types (CPT) and Advanced Custom Fields (ACF) to manage course information dynamically.
+- **Security & UX:** Implemented a custom frontend registration flow, enforced user permission hierarchies (hiding the WordPress admin bar for subscribers), and optimized the authentication lifecycle.
+- **Version Control:** Managed the entire development lifecycle using Git, ensuring clean, modular, and maintainable code.
+
 ## Tech Stack
 - Backend: PHP, WordPress (Custom Theme, CPT, ACF)
 - Frontend: HTML, CSS, Vanilla JavaScript (AJAX)
 - Database: MySQL
-- Infrastructure: Docker / Docker Compose
+- Infrastructure: Docker / Docker Compose, AWS-EC2
 
 ## Data Model & System Design
 
@@ -41,3 +48,16 @@ Future Expansions
 - [ ] Phase 6: Build custom REST API endpoints to expose course and booking data.
 - [ ] Phase 7: Migrate the frontend UI to a decoupled React application utilizing WordPress as a Headless CMS.
 - [ ] Phase 8: Develop a waitlist system for fully booked courses and integrate payment gateways (Stripe/PayPal) for premium classes.
+
+---
+
+## 🛠️ Access & Test Credentials
+You can explore the live platform here: **[https://edubook.duckdns.org](https://edubook.duckdns.org)**
+
+If you would like to test the authenticated features (such as personalized dashboards or booking flows), you are welcome to use the following test account:
+
+- **Username:** `Test77`
+- **Email:** `test@example.com`
+- **Password:** `Test77Password`
+
+> **Note:** Alternatively, feel free to create your own account at our [Registration Page](https://edubook.duckdns.org/register) to experience the full sign-up flow.
