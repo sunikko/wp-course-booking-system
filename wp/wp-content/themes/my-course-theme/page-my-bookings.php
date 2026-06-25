@@ -26,6 +26,7 @@ get_header();
     <?php
     $user_id = get_current_user_id();
 
+    // Query updated to order by the new 'booking_date' meta key
     $my_bookings = new WP_Query([
         'post_type' => 'booking',
         'meta_query' => [
@@ -43,7 +44,7 @@ get_header();
         'post_status' => 'publish',
         'posts_per_page' => -1,
         'orderby' => 'meta_value',
-        'meta_key' => 'booking_week',
+        'meta_key' => 'booking_date',
         'order' => 'ASC'
     ]);
 
@@ -66,28 +67,35 @@ get_header();
                         $booking_id = get_the_ID();
                         $course_id = get_post_meta($booking_id, 'course_id', true);
                         $status = get_post_meta($booking_id, 'status', true);
-
-                        $booking_day = get_post_meta($booking_id, 'booking_day', true);
-                        $booking_time = get_post_meta($booking_id, 'booking_time', true);
-                        $booking_week = get_post_meta($booking_id, 'booking_week', true);
+                        $booking_date = get_post_meta($booking_id, 'booking_date', true);
 
                         $course_title = $course_id ? get_the_title($course_id) : 'Deleted Course';
 
-                        $display_date = $booking_week . ' (' . $booking_day . ')';
-                        $display_time = $booking_time ?: 'N/A';
+                        // Extract time dynamically from the course schedule
+                        $schedule_raw = get_field('schedule', $course_id);
+                        $display_time = 'N/A';
+                        if ($schedule_raw) {
+                            $display_time = date('H:i', strtotime($schedule_raw));
+                        }
+
+                        // Format the new Y-m-d booking_date
+                        $display_date = 'N/A';
+                        if ($booking_date) {
+                            $display_date = date('d/m/Y (D)', strtotime($booking_date));
+                        }
                     ?>
                         <tr>
                             <td><strong><?php echo esc_html($course_title); ?></strong></td>
                             <td><?php echo esc_html($display_date); ?></td>
                             <td><?php echo esc_html($display_time); ?></td>
                             <td>
-                                <span class="status-badge <?php echo $status; ?>">
+                                <span class="status-badge <?php echo esc_attr($status); ?>">
                                     <?php echo $status === 'confirmed' ? '✅ Confirmed' : '❌ Cancelled'; ?>
                                 </span>
                             </td>
                             <td>
                                 <?php if ($status === 'confirmed'): ?>
-                                    <button class="cancel-booking-btn" data-booking-id="<?php echo $booking_id; ?>">
+                                    <button class="cancel-booking-btn" data-booking-id="<?php echo esc_attr($booking_id); ?>">
                                         ❌ Cancel
                                     </button>
                                 <?php else: ?>
