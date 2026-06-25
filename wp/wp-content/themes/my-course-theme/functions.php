@@ -274,71 +274,74 @@ add_action('wp_ajax_cancel_booking', 'handle_cancel_booking');
 // functions.php - Course는 시작일만 저장
 function edubook_trigger_demo_data_generation()
 {
-    $now = current_time('timestamp');
-    $today_numeric = intval(date('w', $now));
-    $days_to_subtract = ($today_numeric === 0) ? 6 : ($today_numeric - 1);
-    $this_monday_ts = strtotime("-{$days_to_subtract} days", strtotime(date('Y-m-d 00:00:00', $now)));
+    if (isset($_GET['generate_demo']) && $_GET['generate_demo'] === 'now') {
+        $now = current_time('timestamp');
+        $today_numeric = intval(date('w', $now));
+        $days_to_subtract = ($today_numeric === 0) ? 6 : ($today_numeric - 1);
+        $this_monday_ts = strtotime("-{$days_to_subtract} days", strtotime(date('Y-m-d 00:00:00', $now)));
 
-    $existing = new WP_Query([
-        'post_type' => 'course',
-        'posts_per_page' => -1,
-    ]);
-    while ($existing->have_posts()) {
-        $existing->the_post();
-        wp_delete_post(get_the_ID(), true);
-    }
-    wp_reset_postdata();
+        $existing = new WP_Query([
+            'post_type' => 'course',
+            'posts_per_page' => -1,
+        ]);
+        while ($existing->have_posts()) {
+            $existing->the_post();
+            wp_delete_post(get_the_ID(), true);
+        }
+        wp_reset_postdata();
 
-    $subjects = [
-        'Science'     => ['teacher' => 'Dr. Kim', 'price' => 100, 'capacity' => 5],
-        'Math'        => ['teacher' => 'Prof. Lee', 'price' => 120, 'capacity' => 4],
-        'English'     => ['teacher' => 'Ms. Park', 'price' => 90, 'capacity' => 6],
-        'Art'         => ['teacher' => 'Mr. Jung', 'price' => 80, 'capacity' => 8],
-        'Music'       => ['teacher' => 'Ms. Choi', 'price' => 110, 'capacity' => 3],
-        'History'     => ['teacher' => 'Dr. Yoon', 'price' => 95, 'capacity' => 5],
-        'Programming' => ['teacher' => 'Mr. Kang', 'price' => 150, 'capacity' => 4],
-    ];
-    $subject_keys = array_keys($subjects);
+        $subjects = [
+            'Science'     => ['teacher' => 'Dr. Kim', 'price' => 100, 'capacity' => 5],
+            'Math'        => ['teacher' => 'Prof. Lee', 'price' => 120, 'capacity' => 4],
+            'English'     => ['teacher' => 'Ms. Park', 'price' => 90, 'capacity' => 6],
+            'Art'         => ['teacher' => 'Mr. Jung', 'price' => 80, 'capacity' => 8],
+            'Music'       => ['teacher' => 'Ms. Choi', 'price' => 110, 'capacity' => 3],
+            'History'     => ['teacher' => 'Dr. Yoon', 'price' => 95, 'capacity' => 5],
+            'Programming' => ['teacher' => 'Mr. Kang', 'price' => 150, 'capacity' => 4],
+        ];
+        $subject_keys = array_keys($subjects);
 
-    $times = ['10:00', '11:00', '12:00', '14:00', '15:00', '16:00'];
+        $times = ['10:00', '11:00', '12:00', '14:00', '15:00', '16:00'];
 
-    $weeks_offsets = [0, 7];
-    $total_created = 0;
+        $weeks_offsets = [0, 7];
+        $total_created = 0;
 
-    foreach ($weeks_offsets as $week_offset) {
-        for ($day_offset = 0; $day_offset <= 5; $day_offset++) {
+        foreach ($weeks_offsets as $week_offset) {
+            for ($day_offset = 0; $day_offset <= 5; $day_offset++) {
 
-            $target_day_ts = strtotime("+ " . ($week_offset + $day_offset) . " days", $this_monday_ts);
-            $date_str = date('Y-m-d', $target_day_ts);
+                $target_day_ts = strtotime("+ " . ($week_offset + $day_offset) . " days", $this_monday_ts);
+                $date_str = date('Y-m-d', $target_day_ts);
 
-            foreach ($times as $time) {
-                if (rand(1, 10) > 4) {
+                foreach ($times as $time) {
+                    if (rand(1, 10) > 4) {
 
-                    $classes_in_this_slot = rand(1, 2);
+                        $classes_in_this_slot = rand(1, 2);
 
-                    for ($i = 0; $i < $classes_in_this_slot; $i++) {
-                        $random_subject = $subject_keys[array_rand($subject_keys)];
-                        $info = $subjects[$random_subject];
+                        for ($i = 0; $i < $classes_in_this_slot; $i++) {
+                            $random_subject = $subject_keys[array_rand($subject_keys)];
+                            $info = $subjects[$random_subject];
 
-                        $post_id = wp_insert_post([
-                            'post_title'  => $random_subject . ' – ' . $info['teacher'],
-                            'post_type'   => 'course',
-                            'post_status' => 'publish'
-                        ]);
+                            $post_id = wp_insert_post([
+                                'post_title'  => $random_subject . ' – ' . $info['teacher'],
+                                'post_type'   => 'course',
+                                'post_status' => 'publish'
+                            ]);
 
-                        if ($post_id) {
-                            update_field('schedule', $date_str . ' ' . $time . ':00', $post_id);
-                            update_field('capacity', $info['capacity'], $post_id);
-                            update_field('price', $info['price'], $post_id);
+                            if ($post_id) {
+                                update_field('schedule', $date_str . ' ' . $time . ':00', $post_id);
+                                update_field('capacity', $info['capacity'], $post_id);
+                                update_field('price', $info['price'], $post_id);
 
-                            $total_created++;
+                                $total_created++;
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    echo "✅  {$total_created} courses created";
+        echo "✅  {$total_created} courses created";
+        wp_die("✅ 성공!");
+    }
 }
 add_action('init', 'edubook_trigger_demo_data_generation');
