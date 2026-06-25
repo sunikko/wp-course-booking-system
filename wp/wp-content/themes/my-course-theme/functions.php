@@ -341,5 +341,4 @@ function generate_correct_demo_data()
 
     echo "✅  {$total_created} courses created";
 }
-
-//generate_correct_demo_data();
+add_action('init', 'edubook_trigger_demo_data_generation');
