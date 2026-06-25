@@ -341,6 +341,15 @@ function edubook_custom_registration_form()
 }
 add_shortcode('edubook_register', 'edubook_custom_registration_form');
 
+
+function remove_admin_bar_for_students()
+{
+    if (!current_user_can('manage_options')) {
+        show_admin_bar(false);
+    }
+}
+add_action('after_setup_theme', 'remove_admin_bar_for_students');
+
 function edubook_trigger_demo_data_generation()
 {
     if (isset($_GET['generate_demo']) && $_GET['generate_demo'] === 'now') {
