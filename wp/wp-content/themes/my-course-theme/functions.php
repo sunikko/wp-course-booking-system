@@ -272,7 +272,7 @@ function handle_cancel_booking()
 add_action('wp_ajax_cancel_booking', 'handle_cancel_booking');
 
 // functions.php - Course는 시작일만 저장
-function generate_correct_demo_data()
+function edubook_trigger_demo_data_generation()
 {
     $now = current_time('timestamp');
     $today_numeric = intval(date('w', $now));
