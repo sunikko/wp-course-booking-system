@@ -87,7 +87,9 @@
         'post_status'    => 'publish',
         'posts_per_page' => -1,
         'meta_query'     => [
-            ['key' => 'user_id', 'value' => (string)$current_user_id, 'compare' => '=']
+            'relation' => 'AND',
+            ['key' => 'user_id', 'value' => (string)$current_user_id, 'compare' => '='],
+            ['key' => 'status', 'value' => 'confirmed', 'compare' => '=']
         ]
     ]);
 

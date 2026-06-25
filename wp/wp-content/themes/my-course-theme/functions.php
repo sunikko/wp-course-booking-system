@@ -151,6 +151,7 @@ function submit_booking()
                 ['key' => 'course_id', 'value' => $course_id],
                 ['key' => 'booking_date', 'value' => $booking_date],
                 ['key' => 'user_id', 'value' => $user_id],
+                ['key' => 'status', 'value' => 'confirmed', 'compare' => '='],
             ],
             'post_status' => 'publish',
         ]);
@@ -218,6 +219,46 @@ function register_booking_post_type()
 }
 add_action('init', 'register_booking_post_type');
 
+
+function handle_cancel_booking()
+{
+    if (!is_user_logged_in()) {
+        wp_send_json_error(['message' => 'You must be logged in to cancel a booking.']);
+    }
+
+    $booking_id = isset($_POST['booking_id']) ? intval($_POST['booking_id']) : 0;
+
+    if ($booking_id <= 0) {
+        wp_send_json_error(['message' => 'Invalid booking ID.']);
+    }
+
+    $current_user_id = get_current_user_id();
+    $booked_user_id = intval(get_post_meta($booking_id, 'user_id', true));
+
+    if ($current_user_id !== $booked_user_id) {
+        wp_send_json_error(['message' => 'You do not have permission to cancel this booking.']);
+    }
+
+    $current_status = get_post_meta($booking_id, 'status', true);
+
+    if ($current_status === 'cancelled') {
+        wp_send_json_error(['message' => 'This booking is already cancelled.']);
+    }
+
+    // 1. Restore the course capacity
+    $course_id = get_post_meta($booking_id, 'course_id', true);
+    if ($course_id) {
+        $capacity = intval(get_field('capacity', $course_id));
+        update_field('capacity', $capacity + 1, $course_id);
+    }
+
+    // 2. Update booking status to 'cancelled'
+    update_post_meta($booking_id, 'status', 'cancelled');
+    update_field('status', 'cancelled', $booking_id);
+
+    wp_send_json_success(['message' => 'Booking cancelled successfully.']);
+}
+add_action('wp_ajax_cancel_booking', 'handle_cancel_booking');
 
 // functions.php - Course는 시작일만 저장
 function generate_correct_demo_data()
