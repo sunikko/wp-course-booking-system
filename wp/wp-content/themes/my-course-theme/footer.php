@@ -3,6 +3,9 @@
     <div id="login-modal" class="auth-modal hidden">
         <div class="auth-box">
             <h2>Login</h2>
+            <div class="login-tip">
+                <p><strong>Test Account:</strong> ID: <code>Test77</code>, PW: <code>Test77Password</code></p>
+            </div>
             <?php wp_login_form([
                 'label_username' => 'Username',
                 'label_password' => 'Password',
@@ -10,7 +13,7 @@
                 'remember' => true,
                 'redirect' => home_url('/booking/')
             ]); ?>
-            <p>No account? <a href="<?php echo wp_registration_url(); ?>">Sign up</a></p>
+            <p>No account? <a href="<?php echo esc_url(home_url('/register')); ?>">Sign Up</a></p>
             <button class="close-modal">Close</button>
         </div>
     </div>
@@ -47,6 +50,21 @@
         <p>&copy; <?php echo date('Y'); ?> EduBook Booking System. All rights reserved.</p>
     </div>
 </footer>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const navToggle = document.querySelector('.mobile-nav-toggle');
+        const navWrapper = document.querySelector('.nav-wrapper');
+
+        if (navToggle && navWrapper) {
+            navToggle.addEventListener('click', function() {
+                const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                this.setAttribute('aria-expanded', !isExpanded);
+                navWrapper.classList.toggle('active');
+            });
+        }
+    });
+</script>
 
 <?php wp_footer(); ?>
 </body>

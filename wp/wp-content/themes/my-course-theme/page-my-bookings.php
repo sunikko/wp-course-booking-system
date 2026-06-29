@@ -85,15 +85,15 @@ get_header();
                         }
                     ?>
                         <tr>
-                            <td><strong><?php echo esc_html($course_title); ?></strong></td>
-                            <td><?php echo esc_html($display_date); ?></td>
-                            <td><?php echo esc_html($display_time); ?></td>
-                            <td>
+                            <td data-label="Course"><strong><?php echo esc_html($course_title); ?></strong></td>
+                            <td data-label="Date"><?php echo esc_html($display_date); ?></td>
+                            <td data-label="Time"><?php echo esc_html($display_time); ?></td>
+                            <td data-label="Status">
                                 <span class="status-badge <?php echo esc_attr($status); ?>">
                                     <?php echo $status === 'confirmed' ? '✅ Confirmed' : '❌ Cancelled'; ?>
                                 </span>
                             </td>
-                            <td>
+                            <td data-label="Action">
                                 <?php if ($status === 'confirmed'): ?>
                                     <button class="cancel-booking-btn" data-booking-id="<?php echo esc_attr($booking_id); ?>">
                                         ❌ Cancel
