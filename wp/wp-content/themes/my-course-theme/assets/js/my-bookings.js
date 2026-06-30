@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: new URLSearchParams({
                     action: 'cancel_booking',
                     booking_id: bookingId,
+                    nonce: wpData.nonce,
                 })
             })
             .then(res => res.json())

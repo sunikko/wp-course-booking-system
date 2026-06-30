@@ -103,53 +103,47 @@ document.addEventListener("DOMContentLoaded", function () {
       const cardSlotKey = card.getAttribute("data-day") + "-" + card.getAttribute("data-time");
 
       // 1. This card is currently selected by the user
-      if (activeCards.includes(card)) {
-        card.classList.remove("live-conflict");
-        card.style.border = "2px solid #007bff";
-        card.style.backgroundColor = "#e7f3ff";
-        card.style.opacity = "1";
-        
-        cardRadios.forEach(r => r.disabled = false);
+        if (activeCards.includes(card)) {
+            card.classList.remove("live-conflict");
+            card.classList.add("my-choice");
+            
+            cardRadios.forEach(r => r.disabled = false);
 
-        const liveBadge = card.querySelector(".badge.live-conflict-badge");
-        if (liveBadge) liveBadge.remove();
-        return;
-      }
-
-      // 2. This card conflicts with an active subject or timeslot
-      if (
-        activeSubjects.includes(cardSubject) ||
-        activeSlots.includes(cardSlotKey)
-      ) {
-        card.classList.add("live-conflict");
-        card.style.border = "2px solid rgb(242 203 146 / 88%)";
-        card.style.backgroundColor = "white";
-        card.style.opacity = "0.7";
-        
-        // DISABLE the radio buttons to prevent clicking
-        cardRadios.forEach(r => r.disabled = true);
-        
-        if (!card.querySelector(".badge.conflict")) {
-          const badge = document.createElement("div");
-          badge.className = "badge conflict live-conflict-badge";
-          badge.innerText = "CONFLICT";
-          const teacherDiv = card.querySelector(".class-teacher");
-          if (teacherDiv) teacherDiv.parentNode.insertBefore(badge, teacherDiv.nextSibling);
+            const liveBadge = card.querySelector(".badge.live-conflict-badge");
+            if (liveBadge) liveBadge.remove();
+            return;
         }
-      } 
-      // 3. This card is fully available
-      else {
-        card.classList.remove("live-conflict");
-        card.style.border = "";
-        card.style.backgroundColor = "";
-        card.style.opacity = "";
-        
-        // ENABLE the radio buttons
-        cardRadios.forEach(r => r.disabled = false);
 
-        const liveBadge = card.querySelector(".badge.live-conflict-badge");
-        if (liveBadge) liveBadge.remove();
-      }
+        // 2. This card conflicts with an active subject or timeslot
+        if (
+            activeSubjects.includes(cardSubject) ||
+            activeSlots.includes(cardSlotKey)
+        ) {
+            card.classList.remove("my-choice");
+            card.classList.add("live-conflict");
+            
+            // DISABLE the radio buttons to prevent clicking
+            cardRadios.forEach(r => r.disabled = true);
+            
+            if (!card.querySelector(".badge.live-conflict-badge")) {
+                const badge = document.createElement("div");
+                badge.className = "badge conflict live-conflict-badge";
+                badge.innerText = "CONFLICT";
+                const teacherDiv = card.querySelector(".class-teacher");
+                if (teacherDiv) teacherDiv.parentNode.insertBefore(badge, teacherDiv.nextSibling);
+            }
+        } 
+        // 3. This card is fully available
+        else {
+            card.classList.remove("live-conflict");
+            card.classList.remove("my-choice");
+            
+            // ENABLE the radio buttons
+            cardRadios.forEach(r => r.disabled = false);
+
+            const liveBadge = card.querySelector(".badge.live-conflict-badge");
+            if (liveBadge) liveBadge.remove();
+        }
     });
   }
 
@@ -208,6 +202,7 @@ document.addEventListener("DOMContentLoaded", function () {
         body: new URLSearchParams({
           action: "submit_booking",
           selected: JSON.stringify(selected),
+          nonce: wpData.nonce,
         }),
       })
         .then((res) => res.json())
