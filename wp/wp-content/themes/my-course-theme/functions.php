@@ -94,6 +94,17 @@ function my_theme_assets()
             'nonce' => wp_create_nonce('booking_nonce')
         ));
     }
+
+    // ===== Archive Course Page =====
+    if (is_post_type_archive('course')) {
+        wp_enqueue_script(
+            'archive-course-js',
+            get_template_directory_uri() . '/assets/js/archive-course.js',
+            array(),
+            '1.0',
+            true
+        );
+    }
 }
 
 add_action('wp_enqueue_scripts', 'my_theme_assets');

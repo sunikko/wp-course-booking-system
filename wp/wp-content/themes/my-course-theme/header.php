@@ -28,14 +28,15 @@
             <!-- 3. Main Navigation & Auth -->
             <div class="nav-wrapper">
                 <nav class="site-navigation">
-                    <ul class="nav-links">
-                        <li><a href="<?php echo home_url('/'); ?>">Home</a></li>
-                        <li><a href="<?php echo home_url('/booking/'); ?>">Booking</a></li>
-                        <?php if (is_user_logged_in()): ?>
-                            <li><a href="<?php echo home_url('/my-bookings/'); ?>">My Bookings</a></li>
-                        <?php endif; ?>
-                    </ul>
-                </nav>
+        <ul class="nav-links">
+            <li><a href="<?php echo home_url('/'); ?>">Home</a></li>
+            <li><a href="<?php echo get_post_type_archive_link('course'); ?>">Courses</a></li>
+            <li><a href="<?php echo home_url('/booking/'); ?>">Booking</a></li>
+            <?php if (is_user_logged_in()) : ?>
+                <li><a href="<?php echo home_url('/my-bookings/'); ?>">My Bookings</a></li>
+            <?php endif; ?>
+        </ul>
+    </nav>
                 <div class="header-auth">
                     <?php if (is_user_logged_in()):
                         $current_user = wp_get_current_user();
